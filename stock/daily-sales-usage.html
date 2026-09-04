@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Daily Sales & Usage | CHAIXI BAMEEKIAO Back Office</title>
+  <link rel="stylesheet" href="../css/app.css" />
+  <link rel="stylesheet" href="../css/stock-v2.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+  <link rel="stylesheet" href="../css/ui-store-v3.21.css?v=2" />
+  <link rel="stylesheet" href="../css/ui-safe-v3.23.css" />
+  <link rel="stylesheet" href="../css/ui-bottom-nav-v3.26.css" />
+  <link rel="stylesheet" href="../css/ui-overlay-v3.27.css" />
+  <link rel="stylesheet" href="../css/daily-sales-usage.css?v=1.0.0" />
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand"><strong>CHAIXI BAMEEKIAO</strong><small>Back Office</small></div>
+    <nav data-backoffice-nav></nav>
+  </aside>
+  <script src="../js/backoffice-sidebar.js?v=4.21.0"></script>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="menu-btn" id="menuBtn">☰</button>
+        <div><h1>📊 ยอดขายเมนู & การใช้วัตถุดิบ</h1><p id="branchText">กำลังโหลด...</p></div>
+      </div>
+      <div class="user-box">
+        <span id="userName">-</span><span class="role-pill" id="roleBadge">-</span>
+        <button class="outline-btn" id="logoutBtn">ออกจากระบบ</button>
+      </div>
+    </header>
+
+    <main class="content">
+      <div data-backoffice-subnav></div>
+
+      <div class="page-head daily-page-head">
+        <div>
+          <h2>รายงานรายวัน</h2>
+          <p>ดูจำนวนเมนูที่ขาย และวัตถุดิบที่ถูกใช้จากการขาย แยกตามวันที่</p>
+        </div>
+        <button class="outline-btn" id="refreshBtn" type="button">↻ รีเฟรช</button>
+      </div>
+
+      <section class="panel filter-panel">
+        <div class="daily-filter-grid">
+          <label class="field"><span>จากวันที่</span><input id="from" type="date" /></label>
+          <label class="field"><span>ถึงวันที่</span><input id="to" type="date" /></label>
+          <div class="quick-date-buttons" aria-label="ช่วงวันที่ด่วน">
+            <button class="outline-btn quick-date" data-days="0" type="button">วันนี้</button>
+            <button class="outline-btn quick-date" data-days="1" type="button">เมื่อวาน</button>
+            <button class="outline-btn quick-date" data-days="7" type="button">7 วัน</button>
+            <button class="outline-btn quick-date" data-days="30" type="button">30 วัน</button>
+          </div>
+          <button class="primary-btn" id="applyBtn" type="button">แสดงผล</button>
+        </div>
+        <p class="message" id="message"></p>
+      </section>
+
+      <section class="daily-summary-grid">
+        <article class="daily-kpi"><span>จำนวนเมนูที่ขาย</span><strong id="totalMenuQty">0</strong><small>จาน / หน่วย</small></article>
+        <article class="daily-kpi"><span>เมนูไม่ซ้ำ</span><strong id="uniqueMenus">0</strong><small>เมนู</small></article>
+        <article class="daily-kpi"><span>ยอดขายสินค้า</span><strong id="menuRevenue">฿0.00</strong><small>ตามรายการสินค้า</small></article>
+        <article class="daily-kpi"><span>วัตถุดิบที่ถูกใช้</span><strong id="uniqueIngredients">0</strong><small>รายการ</small></article>
+        <article class="daily-kpi"><span>มูลค่าวัตถุดิบใช้</span><strong id="ingredientCost">฿0.00</strong><small>จาก Stock Movement</small></article>
+      </section>
+
+      <section class="panel daily-switcher">
+        <div class="report-tabs" role="tablist" aria-label="ประเภทรายงาน">
+          <button class="report-tab active" id="menuTab" data-pane="menuPane" type="button">🍜 เมนูที่ขาย</button>
+          <button class="report-tab" id="ingredientTab" data-pane="ingredientPane" type="button">🥬 วัตถุดิบที่ใช้</button>
+        </div>
+
+        <div class="report-pane active" id="menuPane">
+          <div class="report-toolbar-row">
+            <div><h3>จำนวนเมนูที่ขายแต่ละวัน</h3><p>เรียงจากวันที่ล่าสุด และเมนูที่ขายมากที่สุด</p></div>
+            <input class="report-search" id="menuSearch" type="search" placeholder="ค้นหาเมนู" autocomplete="off" />
+          </div>
+          <div id="menuDailySummary" class="day-summary-strip"></div>
+          <div id="menuTable"></div>
+        </div>
+
+        <div class="report-pane" id="ingredientPane">
+          <div class="report-toolbar-row">
+            <div><h3>วัตถุดิบที่ใช้จากการขายแต่ละวัน</h3><p>อิง Stock Movement ประเภท sale จึงรวมผลจากสูตร / ตัวเลือกเมนูที่ตัดจริง</p></div>
+            <input class="report-search" id="ingredientSearch" type="search" placeholder="ค้นหาวัตถุดิบ / หมวด" autocomplete="off" />
+          </div>
+          <div id="ingredientDailySummary" class="day-summary-strip"></div>
+          <div id="ingredientTable"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script src="../js/daily-sales-usage.js?v=1.0.0" type="module"></script>
+<script defer src="../js/ui-store-v3.21.js"></script>
+<script src="../js/ui-safe-v3.23.js"></script>
+<script src="../js/ui-bottom-nav-v3.26.js"></script>
+<script src="../js/ui-overlay-v3.27.js"></script>
+</body>
+</html>
