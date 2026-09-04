@@ -127,6 +127,51 @@
 
             <p id="message" class="history-message"></p>
 
+            <section class="history-analytics-grid" aria-label="Self order history analytics">
+                <article class="chart-panel">
+                    <div class="chart-panel-head">
+                        <div>
+                            <h3>Status Breakdown</h3>
+                            <p>สัดส่วนสถานะของ QR Self Order ในช่วงวันที่ที่เลือก</p>
+                        </div>
+                        <span class="chart-chip">Auto summary</span>
+                    </div>
+                    <div class="history-chart-grid">
+                        <div class="history-chart-card">
+                            <header>
+                                <h4>Order Status</h4>
+                                <span id="statusChartLabel" class="chart-chip">0 รายการ</span>
+                            </header>
+                            <div id="statusChart" class="history-stat-stack">
+                                <div class="empty">กำลังโหลดกราฟ...</div>
+                            </div>
+                        </div>
+                        <div class="history-chart-card">
+                            <header>
+                                <h4>Operational Notes</h4>
+                                <span class="chart-chip">Flow check</span>
+                            </header>
+                            <div id="timelineStats" class="meta-kpis">
+                                <div class="empty">กำลังโหลดข้อมูล...</div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="chart-panel">
+                    <div class="chart-panel-head">
+                        <div>
+                            <h3>7 Day Trend</h3>
+                            <p>จำนวนรายการย้อนหลัง 7 วัน เพื่อดูแนวโน้มการใช้งาน QR</p>
+                        </div>
+                        <span class="chart-chip">Trend view</span>
+                    </div>
+                    <div id="dailyTrendChart" class="timeline-spark">
+                        <div class="empty">กำลังโหลดกราฟ...</div>
+                    </div>
+                </article>
+            </section>
+
             <section class="panel history-list-card">
                 <div class="panel-head history-list-head">
                     <div>
