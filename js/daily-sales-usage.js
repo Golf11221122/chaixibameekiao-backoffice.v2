@@ -85,18 +85,63 @@ function renderDayStrips() {
   `).join('') : '<div class="empty">ไม่มีข้อมูลการใช้วัตถุดิบในช่วงนี้</div>'
 }
 
+function aggregateMenus(rows) {
+  const map = new Map()
+  for (const row of rows) {
+    const key = row.product_id || row.product_name
+    const old = map.get(key) || {
+      product_id: row.product_id || null,
+      product_name: row.product_name || '-',
+      quantity: 0,
+      bill_count: 0,
+      sales_amount: 0
+    }
+    old.quantity += Number(row.quantity || 0)
+    old.bill_count += Number(row.bill_count || 0)
+    old.sales_amount += Number(row.sales_amount || 0)
+    map.set(key, old)
+  }
+  return [...map.values()].sort((a,b) =>
+    Number(b.quantity||0) - Number(a.quantity||0) ||
+    String(a.product_name||'').localeCompare(String(b.product_name||''), 'th')
+  )
+}
+
+function aggregateIngredients(rows) {
+  const map = new Map()
+  for (const row of rows) {
+    const key = row.ingredient_id || `${row.ingredient_name}|${row.unit}`
+    const old = map.get(key) || {
+      ingredient_id: row.ingredient_id || null,
+      ingredient_name: row.ingredient_name || '-',
+      category_name: row.category_name || '-',
+      ingredient_type: row.ingredient_type || null,
+      unit: row.unit || '',
+      quantity_used: 0,
+      usage_cost: 0
+    }
+    old.quantity_used += Number(row.quantity_used || 0)
+    old.usage_cost += Number(row.usage_cost || 0)
+    map.set(key, old)
+  }
+  return [...map.values()].sort((a,b) =>
+    Number(b.quantity_used||0) - Number(a.quantity_used||0) ||
+    String(a.ingredient_name||'').localeCompare(String(b.ingredient_name||''), 'th')
+  )
+}
+
 function renderMenuTable() {
   const q = $('menuSearch').value.trim().toLowerCase()
-  const list = menuRows.filter(x=>!q || `${x.product_name} ${x.business_date}`.toLowerCase().includes(q))
+  const list = aggregateMenus(menuRows).filter(x=>!q || `${x.product_name}`.toLowerCase().includes(q))
   $('menuTable').innerHTML = list.length ? `
-    <div class="table-wrap daily-table-wrap"><table class="raw-table daily-report-table">
-      <thead><tr><th>วันที่</th><th>เมนู</th><th class="num">จำนวนขาย</th><th class="num">บิล</th><th class="num">ยอดขาย</th></tr></thead>
-      <tbody>${list.map(x=>`<tr>
-        <td data-label="วันที่">${esc(dateText(x.business_date))}</td>
-        <td data-label="เมนู"><strong>${esc(x.product_name)}</strong></td>
-        <td data-label="จำนวนขาย" class="num"><strong>${number(x.quantity)}</strong></td>
-        <td data-label="บิล" class="num">${number(x.bill_count,0)}</td>
-        <td data-label="ยอดขาย" class="num">${money(x.sales_amount)}</td>
+    <div class="table-wrap daily-table-wrap"><table class="raw-table daily-report-table simple-report-table menu-total-table">
+      <thead><tr><th class="rank-col">#</th><th>เมนู</th><th class="num">จำนวนขายรวม</th><th class="num">จำนวนบิล</th><th class="num">ยอดขายรวม</th></tr></thead>
+      <tbody>${list.map((x,i)=>`<tr>
+        <td class="rank-col">${i+1}</td>
+        <td><strong>${esc(x.product_name)}</strong></td>
+        <td class="num"><strong>${number(x.quantity)}</strong></td>
+        <td class="num">${number(x.bill_count,0)}</td>
+        <td class="num"><strong>${money(x.sales_amount)}</strong></td>
       </tr>`).join('')}</tbody>
     </table></div>` : '<div class="empty">ไม่พบเมนู</div>'
 }
@@ -107,17 +152,16 @@ function typeText(v) {
 
 function renderIngredientTable() {
   const q = $('ingredientSearch').value.trim().toLowerCase()
-  const list = ingredientRows.filter(x=>!q || `${x.ingredient_name} ${x.category_name} ${x.unit} ${x.business_date}`.toLowerCase().includes(q))
+  const list = aggregateIngredients(ingredientRows).filter(x=>!q || `${x.ingredient_name} ${x.category_name} ${x.unit}`.toLowerCase().includes(q))
   $('ingredientTable').innerHTML = list.length ? `
-    <div class="table-wrap daily-table-wrap"><table class="raw-table daily-report-table">
-      <thead><tr><th>วันที่</th><th>วัตถุดิบ</th><th>หมวด</th><th>ประเภท</th><th class="num">ใช้ไป</th><th class="num">มูลค่าใช้</th></tr></thead>
-      <tbody>${list.map(x=>`<tr>
-        <td data-label="วันที่">${esc(dateText(x.business_date))}</td>
-        <td data-label="วัตถุดิบ"><strong>${esc(x.ingredient_name)}</strong><br><small>${esc(x.unit)}</small></td>
-        <td data-label="หมวด">${esc(x.category_name)}</td>
-        <td data-label="ประเภท">${esc(typeText(x.ingredient_type))}</td>
-        <td data-label="ใช้ไป" class="num"><strong>${number(x.quantity_used)} ${esc(x.unit)}</strong></td>
-        <td data-label="มูลค่าใช้" class="num">${money(x.usage_cost)}</td>
+    <div class="table-wrap daily-table-wrap"><table class="raw-table daily-report-table simple-report-table ingredient-total-table">
+      <thead><tr><th class="rank-col">#</th><th>วัตถุดิบ</th><th>หมวด</th><th class="num">ใช้รวม</th><th class="num">มูลค่าใช้รวม</th></tr></thead>
+      <tbody>${list.map((x,i)=>`<tr>
+        <td class="rank-col">${i+1}</td>
+        <td><strong>${esc(x.ingredient_name)}</strong><small class="unit-inline"> ${esc(x.unit)}</small></td>
+        <td>${esc(x.category_name)}</td>
+        <td class="num"><strong>${number(x.quantity_used)} ${esc(x.unit)}</strong></td>
+        <td class="num">${money(x.usage_cost)}</td>
       </tr>`).join('')}</tbody>
     </table></div>` : '<div class="empty">ไม่พบวัตถุดิบ</div>'
 }
