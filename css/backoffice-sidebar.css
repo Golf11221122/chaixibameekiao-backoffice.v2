@@ -1,0 +1,184 @@
+/*
+ * CHAIXI BAMEEKIAO
+ * FINAL NAVIGATION — MAIN CATEGORY SIDEBAR + TOP SUBNAV SLOT
+ */
+
+/* =========================
+   MAIN CATEGORY SIDEBAR
+========================= */
+
+[data-backoffice-nav] {
+    display: grid;
+    gap: 7px;
+    padding: 4px 0 12px;
+}
+
+#sidebar [data-backoffice-nav] .nav-category-link,
+.sidebar [data-backoffice-nav] .nav-category-link {
+    min-height: 50px;
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr) 16px;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    color: #cbd5e1;
+    background: transparent;
+    text-decoration: none;
+    font-weight: 750;
+    transition: background-color .16s ease, border-color .16s ease, color .16s ease, transform .16s ease;
+}
+
+#sidebar [data-backoffice-nav] .nav-category-link:hover,
+.sidebar [data-backoffice-nav] .nav-category-link:hover {
+    color: #fff;
+    background: rgba(255,255,255,.07);
+    border-color: rgba(255,255,255,.06);
+    transform: translateX(2px);
+}
+
+#sidebar [data-backoffice-nav] .nav-category-link.active,
+.sidebar [data-backoffice-nav] .nav-category-link.active {
+    color: #fff;
+    background: linear-gradient(90deg, rgba(228,170,43,.16), rgba(228,170,43,.05));
+    border-color: rgba(228,170,43,.24);
+    box-shadow: inset 3px 0 0 #f4b526, inset 0 1px 0 rgba(255,255,255,.04);
+    font-weight: 900;
+}
+
+.nav-category-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    background: rgba(255,255,255,.05);
+    font-size: 15px;
+    transition: background-color .16s ease;
+}
+.nav-category-link:hover .nav-category-icon { background: rgba(255,255,255,.09); }
+.nav-category-link.active .nav-category-icon { background: #f4b526; }
+.nav-category-label {
+    min-width: 0;
+    font-size: 12px;
+    line-height: 1.35;
+    letter-spacing: .045em;
+    text-transform: uppercase;
+}
+.nav-category-arrow {
+    justify-self: end;
+    color: #91a4bb;
+    font-size: 20px;
+}
+.nav-category-link.active .nav-category-arrow { color: #f4b526; }
+
+/* =========================
+   EXPLICIT TOP SUBNAV SLOT
+========================= */
+
+[data-backoffice-subnav] {
+    margin-bottom: 14px;
+}
+
+.backoffice-subnav {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,.97);
+    backdrop-filter: blur(10px);
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 4px 14px rgba(15,23,42,.05);
+}
+
+.backoffice-subnav-title {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding-right: 12px;
+    border-right: 1px solid #e2e8f0;
+    white-space: nowrap;
+    color: #172033;
+}
+.backoffice-subnav-title strong {
+    font-size: 12px;
+    font-weight: 950;
+}
+
+.backoffice-subnav-scroll {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    padding: 1px 0 3px;
+}
+
+.backoffice-subnav-link {
+    flex: 0 0 auto;
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 11px;
+    border: 1px solid #edf1f5;
+    border-radius: 999px;
+    color: #475467;
+    background: #f8fafc;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 850;
+    white-space: nowrap;
+    transition: background-color .14s ease, border-color .14s ease, color .14s ease, transform .14s ease;
+}
+
+.backoffice-subnav-link:hover {
+    color: #172033;
+    background: #f1f5f9;
+    border-color: #dce3eb;
+    transform: translateY(-1px);
+}
+
+.backoffice-subnav-link.active {
+    color: #fff;
+    background: linear-gradient(135deg, #172033, #263a58);
+    border-color: #172033;
+    box-shadow: 0 3px 10px rgba(23,32,51,.25);
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 900px) {
+    .backoffice-subnav {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 9px 10px;
+    }
+    .backoffice-subnav-title {
+        border-right: 0;
+        padding-right: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    #sidebar [data-backoffice-nav] .nav-category-link,
+    .sidebar [data-backoffice-nav] .nav-category-link {
+        min-height: 48px;
+        padding: 10px 11px;
+    }
+    .nav-category-label { font-size: 11px; }
+
+    [data-backoffice-subnav] { margin-bottom: 10px; }
+    .backoffice-subnav { border-radius: 12px; }
+    .backoffice-subnav-link {
+        min-height: 38px;
+        padding: 8px 11px;
+    }
+}
