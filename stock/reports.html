@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+
+<html lang="th"><head>
+<meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
+<title>Stock Report V3.1 | CHAIXI BAMEEKIAO Back Office</title>
+<link href="../css/app.css" rel="stylesheet"/><link href="../css/stock-v2.css" rel="stylesheet"/>
+<link href="../css/responsive.css" rel="stylesheet"/><link href="../css/print.css" rel="stylesheet"/><link href="../css/print-wide-report.css" rel="stylesheet"/><link href="../css/ui-store-v3.21.css?v=2" rel="stylesheet"/><link href="../css/ui-safe-v3.23.css" rel="stylesheet"/><link href="../css/ui-bottom-nav-v3.26.css" rel="stylesheet"/><link rel="stylesheet" href="../css/ui-overlay-v3.27.css"></head><body>
+<div class="app">
+<aside class="sidebar" id="sidebar"><div class="sidebar-brand"><strong>CHAIXI BAMEEKIAO</strong><small>Back Office</small></div><nav data-backoffice-nav></nav></aside>
+<script src="../js/backoffice-sidebar.js"></script>
+<div class="main"><header class="topbar"><div class="topbar-left"><button class="menu-btn" id="menuBtn">☰</button><div><h1>📈 Stock Report V3.1</h1><p id="branchText">กำลังโหลด...</p></div></div><div class="user-box"><span id="userName">-</span><span class="role-pill" id="roleBadge">-</span><button class="outline-btn" id="logoutBtn">ออกจากระบบ</button></div></header>
+<main class="content">
+<div data-backoffice-subnav></div>
+<div class="page-head"><div><h2>Stock Report + Production</h2><p>Raw / Prep / รับเข้า / Production In-Out / ขาย / Waste / Adjustment</p></div><button class="outline-btn" id="refreshBtn">↻ โหลดรายงาน</button></div>
+<section class="panel"><div class="report-filter-grid">
+<label class="field wide"><span>ค้นหา</span><input id="search" placeholder="ชื่อวัตถุดิบ"/></label>
+<label class="field"><span>จากวันที่</span><input id="from" type="date"/></label>
+<label class="field"><span>ถึงวันที่</span><input id="to" type="date"/></label>
+<label class="field"><span>หมวด</span><select id="category"><option value="">ทุกหมวด</option></select></label>
+<label class="field"><span>ประเภท</span><select id="ingredientType"><option value="">ทุกประเภท</option><option value="raw">Raw</option><option value="prep">Prep</option><option value="beverage">เครื่องดื่ม</option><option value="packaging">Packaging</option><option value="consumable">Consumable</option></select></label>
+<button class="primary-btn" id="applyBtn">แสดงผล</button></div></section>
+<section class="kpi-grid-6">
+<article class="cost-kpi"><span>มูลค่า Stock</span><strong id="stockValue">฿0.00</strong></article>
+<article class="cost-kpi"><span>รับเข้า</span><strong id="inValue">฿0.00</strong></article>
+<article class="cost-kpi"><span>Production In</span><strong id="prodInValue">฿0.00</strong></article>
+<article class="cost-kpi"><span>Production Out</span><strong id="prodOutValue">฿0.00</strong></article>
+<article class="cost-kpi"><span>ใช้จากขาย</span><strong id="saleValue">฿0.00</strong></article>
+<article class="cost-kpi cost-danger"><span>Waste</span><strong id="wasteValue">฿0.00</strong></article>
+</section>
+<section class="panel"><div class="panel-head"><div><h3>Production Yield</h3><p>สรุป Batch ในช่วงรายงาน</p></div></div><div class="kpi-grid" id="productionSummary"></div></section>
+<section class="panel"><div class="category-summary-grid" id="categorySummary"></div></section>
+<section class="panel screen-detail"><div id="table"></div><p class="message" id="message"></p></section><section class="print-detail" id="printDetail"></section>
+</main></div></div>
+<script src="../js/stock-reports.js" type="module"></script><script type="module">
+import { installReportToolbar } from '../js/report-tools.js';
+installReportToolbar();
+</script><script defer="True" src="../js/ui-store-v3.21.js"></script><script src="../js/ui-safe-v3.23.js"></script><script src="../js/ui-bottom-nav-v3.26.js"></script><script src="../js/ui-overlay-v3.27.js"></script></body></html>
