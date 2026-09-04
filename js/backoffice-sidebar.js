@@ -114,7 +114,7 @@ function ensureCss(root) {
     if (document.querySelector('link[data-chaixi-sidebar-css]')) return
     const link = document.createElement('link')
     link.rel = 'stylesheet'
-    link.href = `${root}css/backoffice-sidebar.css?v=4.19.0`
+    link.href = `${root}css/backoffice-sidebar.css?v=4.20.0`
     link.dataset.chaixiSidebarCss = 'true'
     document.head.appendChild(link)
 }
