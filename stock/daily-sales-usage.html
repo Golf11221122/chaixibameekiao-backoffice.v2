@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../css/ui-safe-v3.23.css" />
   <link rel="stylesheet" href="../css/ui-bottom-nav-v3.26.css" />
   <link rel="stylesheet" href="../css/ui-overlay-v3.27.css" />
-  <link rel="stylesheet" href="../css/daily-sales-usage.css?v=1.0.0" />
+  <link rel="stylesheet" href="../css/daily-sales-usage.css?v=1.1.0" />
 </head>
 <body>
 <div class="app">
@@ -75,7 +75,7 @@
 
         <div class="report-pane active" id="menuPane">
           <div class="report-toolbar-row">
-            <div><h3>จำนวนเมนูที่ขายแต่ละวัน</h3><p>เรียงจากวันที่ล่าสุด และเมนูที่ขายมากที่สุด</p></div>
+            <div><h3>สรุปจำนวนขายรวมแต่ละเมนู</h3><p>รวมตามช่วงวันที่ที่เลือก และเรียงจากเมนูที่ขายมากที่สุด</p></div>
             <input class="report-search" id="menuSearch" type="search" placeholder="ค้นหาเมนู" autocomplete="off" />
           </div>
           <div id="menuDailySummary" class="day-summary-strip"></div>
@@ -84,7 +84,7 @@
 
         <div class="report-pane" id="ingredientPane">
           <div class="report-toolbar-row">
-            <div><h3>วัตถุดิบที่ใช้จากการขายแต่ละวัน</h3><p>อิง Stock Movement ประเภท sale จึงรวมผลจากสูตร / ตัวเลือกเมนูที่ตัดจริง</p></div>
+            <div><h3>สรุปวัตถุดิบที่ใช้รวม</h3><p>รวมตามช่วงวันที่ที่เลือก จาก Stock Movement ประเภท sale</p></div>
             <input class="report-search" id="ingredientSearch" type="search" placeholder="ค้นหาวัตถุดิบ / หมวด" autocomplete="off" />
           </div>
           <div id="ingredientDailySummary" class="day-summary-strip"></div>
@@ -95,7 +95,7 @@
   </div>
 </div>
 
-<script src="../js/daily-sales-usage.js?v=1.0.0" type="module"></script>
+<script src="../js/daily-sales-usage.js?v=1.1.0" type="module"></script>
 <script defer src="../js/ui-store-v3.21.js"></script>
 <script src="../js/ui-safe-v3.23.js"></script>
 <script src="../js/ui-bottom-nav-v3.26.js"></script>
