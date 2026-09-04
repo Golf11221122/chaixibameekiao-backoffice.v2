@@ -65,6 +65,7 @@ const NAV_SECTIONS = [
             { key: 'count', label: '🧮 Stock Count', path: 'stock/count.html' },
             { key: 'closing', label: '🔒 ปิดรอบ Stock', path: 'stock/closing.html' },
             { key: 'reports', label: '📈 Stock Report', path: 'stock/reports.html' },
+            { key: 'daily-sales-usage', label: '📊 ขายเมนู / ใช้วัตถุดิบ', path: 'stock/daily-sales-usage.html' },
             { key: 'cost-control', label: '💰 Cost Control', path: 'stock/cost-control.html' }
         ]
     },
