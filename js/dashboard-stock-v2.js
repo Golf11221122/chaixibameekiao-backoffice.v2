@@ -1,12 +1,6 @@
 import { supabase } from './supabase.js'
 import { requireBackoffice, setupShell, money, number } from './auth.js'
 
-const ctx = await requireBackoffice()
-if (ctx) {
-  setupShell(ctx, 'dashboard')
-  await load()
-}
-
 const $ = id => document.getElementById(id)
 
 function setText(id, value) {
@@ -52,18 +46,9 @@ function renderAttention(r) {
   poCard?.classList.remove('is-ok', 'is-warning', 'is-danger')
   countCard?.classList.remove('is-ok', 'is-warning', 'is-danger')
 
-  alertCard?.classList.add(attentionState({
-    critical: r?.out_stock_count,
-    warning: r?.low_stock_count
-  }))
-  poCard?.classList.add(attentionState({
-    critical: Number(r?.open_po_count || 0) >= 5 ? 1 : 0,
-    warning: Number(r?.open_po_count || 0) > 0 ? 1 : 0
-  }))
-  countCard?.classList.add(attentionState({
-    critical: Number(r?.pending_count_count || 0) >= 3 ? 1 : 0,
-    warning: Number(r?.pending_count_count || 0) > 0 ? 1 : 0
-  }))
+  alertCard?.classList.add(attentionState({ critical: r?.out_stock_count, warning: r?.low_stock_count }))
+  poCard?.classList.add(attentionState({ critical: Number(r?.open_po_count || 0) >= 5 ? 1 : 0, warning: Number(r?.open_po_count || 0) > 0 ? 1 : 0 }))
+  countCard?.classList.add(attentionState({ critical: Number(r?.pending_count_count || 0) >= 3 ? 1 : 0, warning: Number(r?.pending_count_count || 0) > 0 ? 1 : 0 }))
 }
 
 function renderStockHealth(r) {
@@ -76,30 +61,9 @@ function renderStockHealth(r) {
   const healthyCount = Math.max(ingredientCount - outCount - lowCount, 0)
 
   const items = [
-    {
-      key: 'good',
-      label: 'พร้อมใช้',
-      value: healthyCount,
-      pct: ingredientCount ? (healthyCount / ingredientCount) * 100 : 0,
-      tone: 'good',
-      footer: ingredientCount ? `${healthyCount}/${ingredientCount} รายการ` : 'ยังไม่มีข้อมูล'
-    },
-    {
-      key: 'warn',
-      label: 'ใกล้หมด',
-      value: lowCount,
-      pct: ingredientCount ? (lowCount / ingredientCount) * 100 : 0,
-      tone: 'warn',
-      footer: lowCount > 0 ? 'ควรวางแผนสั่งซื้อ' : 'ไม่มีรายการเตือน'
-    },
-    {
-      key: 'bad',
-      label: 'หมดสต็อก',
-      value: outCount,
-      pct: ingredientCount ? (outCount / ingredientCount) * 100 : 0,
-      tone: 'bad',
-      footer: outCount > 0 ? 'ต้องแก้ไขเร่งด่วน' : 'ไม่มีวัตถุดิบขาด'
-    }
+    { key: 'good', label: 'พร้อมใช้', value: healthyCount, pct: ingredientCount ? (healthyCount / ingredientCount) * 100 : 0, tone: 'good', footer: ingredientCount ? `${healthyCount}/${ingredientCount} รายการ` : 'ยังไม่มีข้อมูล' },
+    { key: 'warn', label: 'ใกล้หมด', value: lowCount, pct: ingredientCount ? (lowCount / ingredientCount) * 100 : 0, tone: 'warn', footer: lowCount > 0 ? 'ควรวางแผนสั่งซื้อ' : 'ไม่มีรายการเตือน' },
+    { key: 'bad', label: 'หมดสต็อก', value: outCount, pct: ingredientCount ? (outCount / ingredientCount) * 100 : 0, tone: 'bad', footer: outCount > 0 ? 'ต้องแก้ไขเร่งด่วน' : 'ไม่มีวัตถุดิบขาด' }
   ]
 
   host.innerHTML = items.map(item => {
@@ -138,41 +102,11 @@ function renderInsights(r) {
   const purchaseRatio = stockValue > 0 ? (purchaseValue / stockValue) * 100 : 0
 
   const insights = [
-    {
-      icon: '🚨',
-      title: 'Stock Alerts',
-      copy: alertTotal > 0 ? 'มีวัตถุดิบที่ต้องเช็กทันที' : 'ไม่มี Alert สำคัญในรอบนี้',
-      value: alertTotal > 0 ? `${number(alertTotal, 0)} รายการ` : 'พร้อมขาย',
-      tone: alertTotal > 0 ? (Number(r?.out_stock_count || 0) > 0 ? 'bad' : 'warn') : 'good'
-    },
-    {
-      icon: '🛒',
-      title: 'Open Purchase Orders',
-      copy: 'ติดตามการสั่งซื้อและรับของเข้า',
-      value: `${number(openPo, 0)} PO`,
-      tone: openPo >= 5 ? 'bad' : openPo > 0 ? 'warn' : 'good'
-    },
-    {
-      icon: '🧮',
-      title: 'Pending Count Tasks',
-      copy: 'งานตรวจนับที่ยังรอปิดรอบ',
-      value: `${number(pendingCount, 0)} งาน`,
-      tone: pendingCount >= 3 ? 'bad' : pendingCount > 0 ? 'warn' : 'good'
-    },
-    {
-      icon: '♻️',
-      title: 'Waste vs Stock Value',
-      copy: `ของเสียเดือนนี้ ${money(wasteValue)}`,
-      value: `${number(wastePct, 1)}%`,
-      tone: wastePct >= 5 ? 'bad' : wastePct >= 2 ? 'warn' : 'good'
-    },
-    {
-      icon: '💸',
-      title: 'Monthly Purchase Load',
-      copy: `ยอดซื้อเดือนนี้ ${money(purchaseValue)}`,
-      value: `${number(purchaseRatio, 1)}%`,
-      tone: purchaseRatio >= 90 ? 'warn' : 'good'
-    }
+    { icon: '🚨', title: 'Stock Alerts', copy: alertTotal > 0 ? 'มีวัตถุดิบที่ต้องเช็กทันที' : 'ไม่มี Alert สำคัญในรอบนี้', value: alertTotal > 0 ? `${number(alertTotal, 0)} รายการ` : 'พร้อมขาย', tone: alertTotal > 0 ? (Number(r?.out_stock_count || 0) > 0 ? 'bad' : 'warn') : 'good' },
+    { icon: '🛒', title: 'Open Purchase Orders', copy: 'ติดตามการสั่งซื้อและรับของเข้า', value: `${number(openPo, 0)} PO`, tone: openPo >= 5 ? 'bad' : openPo > 0 ? 'warn' : 'good' },
+    { icon: '🧮', title: 'Pending Count Tasks', copy: 'งานตรวจนับที่ยังรอปิดรอบ', value: `${number(pendingCount, 0)} งาน`, tone: pendingCount >= 3 ? 'bad' : pendingCount > 0 ? 'warn' : 'good' },
+    { icon: '♻️', title: 'Waste vs Stock Value', copy: `ของเสียเดือนนี้ ${money(wasteValue)}`, value: `${number(wastePct, 1)}%`, tone: wastePct >= 5 ? 'bad' : wastePct >= 2 ? 'warn' : 'good' },
+    { icon: '💸', title: 'Monthly Purchase Load', copy: `ยอดซื้อเดือนนี้ ${money(purchaseValue)}`, value: `${number(purchaseRatio, 1)}%`, tone: purchaseRatio >= 90 ? 'warn' : 'good' }
   ]
 
   host.innerHTML = insights.map(item => `
@@ -191,10 +125,11 @@ function renderInsights(r) {
 async function load() {
   const message = $('message')
   if (message) message.textContent = ''
+
   try {
     const { data, error } = await supabase.rpc('backoffice_stock_dashboard_v2')
     if (error) throw error
-    const r = Array.isArray(data) ? data[0] : data || {}
+    const r = Array.isArray(data) ? data[0] : (data || {})
 
     setText('stockValue', money(r?.stock_value))
     setText('ingredientText', `${number(r?.ingredient_count, 0)} วัตถุดิบ`)
@@ -207,12 +142,29 @@ async function load() {
     renderAttention(r)
     renderStockHealth(r)
     renderInsights(r)
-
-    if (message) message.textContent = ''
   } catch (error) {
-    if (message) message.textContent = error?.message || 'โหลด Dashboard ไม่สำเร็จ'
     console.error('dashboard load failed', error)
+    if (message) message.textContent = error?.message || 'โหลด Dashboard ไม่สำเร็จ'
+
+    const bars = $('stockHealthBars')
+    const insights = $('opsInsights')
+    if (bars) bars.innerHTML = '<div class="empty">โหลดกราฟไม่สำเร็จ</div>'
+    if (insights) insights.innerHTML = '<div class="empty">โหลดข้อมูลไม่สำเร็จ</div>'
+  }
+}
+
+async function init() {
+  try {
+    const ctx = await requireBackoffice()
+    if (!ctx) return
+    setupShell(ctx, 'dashboard')
+    await load()
+  } catch (error) {
+    console.error('dashboard init failed', error)
+    const message = $('message')
+    if (message) message.textContent = error?.message || 'เปิดหน้า Dashboard ไม่สำเร็จ'
   }
 }
 
 document.getElementById('refreshBtn')?.addEventListener('click', load)
+init()
