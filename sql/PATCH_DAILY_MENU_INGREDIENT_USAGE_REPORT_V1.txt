@@ -1,0 +1,153 @@
+-- ============================================================
+-- CHAIXI BAMEEKIAO Back Office
+-- Daily Menu Sales + Ingredient Usage Report V1
+-- 2026-09-04
+-- ============================================================
+-- Purpose
+--   1) Menu quantities sold, grouped by business day
+--   2) Ingredient quantities consumed by sales, grouped by business day
+--
+-- Security
+--   - Uses existing public._bo_ctx()
+--   - Admin / Manager only, branch scoped
+--   - Read-only report functions
+-- ============================================================
+
+create index if not exists idx_sales_branch_created_status
+    on public.sales(branch_id, created_at, status);
+
+create index if not exists idx_sale_items_sale_product
+    on public.sale_items(sale_id, product_id);
+
+create index if not exists idx_ingredient_stock_movements_branch_type_created
+    on public.ingredient_stock_movements(branch_id, movement_type, created_at);
+
+
+create or replace function public.backoffice_daily_menu_sales_v1(
+    p_from timestamptz,
+    p_to timestamptz
+)
+returns table(
+    business_date date,
+    product_id uuid,
+    product_name text,
+    quantity numeric,
+    bill_count bigint,
+    sales_amount numeric
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    v_branch uuid;
+begin
+    select x.branch_id
+      into v_branch
+      from public._bo_ctx() x;
+
+    if v_branch is null then
+        raise exception 'BACKOFFICE_PERMISSION_DENIED';
+    end if;
+
+    if p_from is null or p_to is null or p_to < p_from then
+        raise exception 'INVALID_DATE_RANGE';
+    end if;
+
+    return query
+    select
+        (s.created_at at time zone 'Asia/Bangkok')::date as business_date,
+        si.product_id,
+        coalesce(nullif(trim(si.product_name), ''), p.name, 'สินค้า')::text as product_name,
+        coalesce(sum(si.quantity), 0)::numeric as quantity,
+        count(distinct s.id)::bigint as bill_count,
+        coalesce(sum(si.total_price), 0)::numeric as sales_amount
+    from public.sales s
+    join public.sale_items si
+      on si.sale_id = s.id
+    left join public.products p
+      on p.id = si.product_id
+    where s.branch_id = v_branch
+      and s.created_at >= p_from
+      and s.created_at <= p_to
+      and coalesce(lower(s.status), '') <> 'cancelled'
+    group by
+        (s.created_at at time zone 'Asia/Bangkok')::date,
+        si.product_id,
+        coalesce(nullif(trim(si.product_name), ''), p.name, 'สินค้า')
+    having coalesce(sum(si.quantity), 0) <> 0
+    order by business_date desc, quantity desc, product_name;
+end
+$$;
+
+revoke all on function public.backoffice_daily_menu_sales_v1(timestamptz,timestamptz) from public;
+grant execute on function public.backoffice_daily_menu_sales_v1(timestamptz,timestamptz) to authenticated;
+
+
+create or replace function public.backoffice_daily_ingredient_sale_usage_v1(
+    p_from timestamptz,
+    p_to timestamptz
+)
+returns table(
+    business_date date,
+    ingredient_id uuid,
+    ingredient_name text,
+    category_name text,
+    ingredient_type text,
+    unit text,
+    quantity_used numeric,
+    usage_cost numeric
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    v_branch uuid;
+begin
+    select x.branch_id
+      into v_branch
+      from public._bo_ctx() x;
+
+    if v_branch is null then
+        raise exception 'BACKOFFICE_PERMISSION_DENIED';
+    end if;
+
+    if p_from is null or p_to is null or p_to < p_from then
+        raise exception 'INVALID_DATE_RANGE';
+    end if;
+
+    return query
+    select
+        (m.created_at at time zone 'Asia/Bangkok')::date as business_date,
+        i.id as ingredient_id,
+        i.name::text as ingredient_name,
+        coalesce(c.name, 'อื่นๆ')::text as category_name,
+        coalesce(i.ingredient_type, '')::text as ingredient_type,
+        coalesce(i.unit, '')::text as unit,
+        coalesce(sum(abs(m.quantity)), 0)::numeric as quantity_used,
+        coalesce(sum(abs(m.quantity) * coalesce(m.unit_cost, 0)), 0)::numeric as usage_cost
+    from public.ingredient_stock_movements m
+    join public.ingredients i
+      on i.id = m.ingredient_id
+     and i.branch_id = v_branch
+    left join public.ingredient_categories c
+      on c.id = i.category_id
+    where m.branch_id = v_branch
+      and m.created_at >= p_from
+      and m.created_at <= p_to
+      and lower(coalesce(m.movement_type, '')) = 'sale'
+    group by
+        (m.created_at at time zone 'Asia/Bangkok')::date,
+        i.id,
+        i.name,
+        c.name,
+        i.ingredient_type,
+        i.unit
+    having coalesce(sum(abs(m.quantity)), 0) <> 0
+    order by business_date desc, quantity_used desc, ingredient_name;
+end
+$$;
+
+revoke all on function public.backoffice_daily_ingredient_sale_usage_v1(timestamptz,timestamptz) from public;
+grant execute on function public.backoffice_daily_ingredient_sale_usage_v1(timestamptz,timestamptz) to authenticated;
