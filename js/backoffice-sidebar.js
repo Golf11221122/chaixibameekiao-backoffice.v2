@@ -16,6 +16,7 @@ const NAV_SECTIONS = [
         title: 'ภาพรวม',
         icon: '🏠',
         items: [
+            { key: 'operations', label: '✅ งานวันนี้', path: 'operations.html' },
             { key: 'dashboard', label: '📊 Dashboard', path: 'dashboard.html' },
             { key: 'financial-summary', label: '🧭 Financial Summary', path: 'finance/financial-summary.html' },
             { key: 'kpi-targets', label: '🎯 KPI & Targets', path: 'finance/kpi-targets.html' },
