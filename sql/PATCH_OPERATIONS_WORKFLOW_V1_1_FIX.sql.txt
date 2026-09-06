@@ -1,0 +1,57 @@
+-- ============================================================
+-- CHAIXI BAMEEKIAO — OPERATIONS WORKFLOW V1.1 FIX
+-- Fix: profiles table has no email column.
+-- Safe: replaces only the list RPC; no Sales/Stock/PO data changes.
+-- ============================================================
+
+begin;
+
+create or replace function public.backoffice_operations_list_v1(
+    p_period_type text,
+    p_period_key text
+)
+returns table(
+    task_key text,
+    completed_at timestamptz,
+    completed_by uuid,
+    completed_by_name text,
+    note text
+)
+language plpgsql
+security definer
+set search_path=public
+as $$
+declare
+    v_branch uuid;
+begin
+    select x.branch_id into v_branch from public._bo_ctx() x;
+    if v_branch is null then raise exception 'BACKOFFICE_PERMISSION_DENIED'; end if;
+    if p_period_type not in ('daily','month','year') then raise exception 'INVALID_PERIOD_TYPE'; end if;
+    if nullif(trim(coalesce(p_period_key,'')),'') is null then raise exception 'INVALID_PERIOD_KEY'; end if;
+
+    return query
+    select c.task_key,
+           c.completed_at,
+           c.completed_by,
+           coalesce(nullif(trim(p.full_name),''),'-')::text as completed_by_name,
+           c.note
+    from public.backoffice_operation_checks c
+    left join public.profiles p on p.id=c.completed_by
+    where c.branch_id=v_branch
+      and c.period_type=p_period_type
+      and c.period_key=p_period_key
+    order by c.completed_at;
+end
+$$;
+
+revoke all on function public.backoffice_operations_list_v1(text,text) from public;
+grant execute on function public.backoffice_operations_list_v1(text,text) to authenticated;
+
+commit;
+
+-- SQL Editor-safe verify
+select proname as function_name
+from pg_proc p
+join pg_namespace n on n.oid=p.pronamespace
+where n.nspname='public'
+  and proname='backoffice_operations_list_v1';
