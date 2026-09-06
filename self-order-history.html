@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
+    <title>🧾 QR Self Order History | CHAIXI BAMEEKIAO Back Office</title>
+
+    <link href="../css/app.css" rel="stylesheet"/>
+    <link href="../css/stock-v2.css" rel="stylesheet"/>
+    <link href="../css/responsive.css" rel="stylesheet"/>
+    <link href="../css/print.css" rel="stylesheet"/>
+    <link href="../css/ui-store-v3.21.css?v=2" rel="stylesheet"/>
+    <link href="../css/ui-safe-v3.23.css" rel="stylesheet"/>
+    <link href="../css/ui-bottom-nav-v3.26.css" rel="stylesheet"/>
+    <link href="../css/ui-overlay-v3.27.css" rel="stylesheet"/>
+    <link href="../css/self-order-history.css?v=4.15.1" rel="stylesheet"/>
+    <link href="../css/ui-refresh-v4.1.css" rel="stylesheet"/>
+</head>
+
+<body>
+<div class="app">
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <strong>CHAIXI BAMEEKIAO</strong>
+            <small>Back Office</small>
+        </div>
+
+        <nav data-backoffice-nav></nav>
+    </aside>
+
+    <script src="../js/backoffice-sidebar.js?v=4.23.1"></script>
+
+    <div class="main">
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="menu-btn" id="menuBtn" type="button">☰</button>
+                <div>
+                    <h1>🧾 QR Self Order History</h1>
+                    <p id="branchText">กำลังโหลด...</p>
+                </div>
+            </div>
+
+            <div class="user-box">
+                <span class="user-name" id="userName">-</span>
+                <span class="role-pill" id="roleBadge">-</span>
+                <button class="outline-btn" id="logoutBtn" type="button">ออกจากระบบ</button>
+            </div>
+        </header>
+
+        <main class="content">
+            <div data-backoffice-subnav></div>
+
+            <div class="page-head">
+                <div>
+                    <h2>ประวัติ QR Self Order</h2>
+                    <p>ตรวจย้อนหลัง Order → Payment → Kitchen → Pickup → Sale / Stock และ Audit Timeline</p>
+                </div>
+                <button class="outline-btn" id="refreshBtn" type="button">↻ รีเฟรช</button>
+            </div>
+
+            <section class="history-filters panel">
+                <label>
+                    จากวันที่
+                    <input id="dateFrom" type="date"/>
+                </label>
+
+                <label>
+                    ถึงวันที่
+                    <input id="dateTo" type="date"/>
+                </label>
+
+                <label>
+                    สถานะ
+                    <select id="statusFilter">
+                        <option value="all">ทั้งหมด</option>
+                        <option value="completed">สำเร็จ</option>
+                        <option value="expired">หมดเวลา</option>
+                        <option value="cancelled">ยกเลิก</option>
+                        <option value="refund">คืนเงิน</option>
+                        <option value="blocked">มีปัญหา</option>
+                    </select>
+                </label>
+
+                <label class="history-search">
+                    ค้นหา
+                    <input id="searchInput" type="search"
+                           placeholder="เลขออเดอร์ / คิว / รหัสรับอาหาร / ลูกค้า"/>
+                </label>
+            </section>
+
+            <section class="history-summary">
+                <article class="history-kpi">
+                    <span>ทั้งหมด</span>
+                    <strong id="sumTotal">0</strong>
+                    <small>ออเดอร์</small>
+                </article>
+
+                <article class="history-kpi">
+                    <span>สำเร็จ</span>
+                    <strong id="sumCompleted">0</strong>
+                    <small>Completed</small>
+                </article>
+
+                <article class="history-kpi">
+                    <span>หมดเวลา</span>
+                    <strong id="sumExpired">0</strong>
+                    <small>Expired</small>
+                </article>
+
+                <article class="history-kpi">
+                    <span>ยกเลิก / คืนเงิน</span>
+                    <strong id="sumCancelled">0</strong>
+                    <small>Cancel / Refund</small>
+                </article>
+
+                <article class="history-kpi">
+                    <span>มีปัญหา</span>
+                    <strong id="sumBlocked">0</strong>
+                    <small>Blocked</small>
+                </article>
+
+                <article class="history-kpi">
+                    <span>ยอด Paid</span>
+                    <strong id="sumPaid">฿0.00</strong>
+                    <small>QR Self Order</small>
+                </article>
+            </section>
+
+            <p id="message" class="history-message"></p>
+
+            <section class="history-analytics-grid" aria-label="Self order history analytics">
+                <article class="chart-panel">
+                    <div class="chart-panel-head">
+                        <div>
+                            <h3>Status Breakdown</h3>
+                            <p>สัดส่วนสถานะของ QR Self Order ในช่วงวันที่ที่เลือก</p>
+                        </div>
+                        <span class="chart-chip">Auto summary</span>
+                    </div>
+                    <div class="history-chart-grid">
+                        <div class="history-chart-card">
+                            <header>
+                                <h4>Order Status</h4>
+                                <span id="statusChartLabel" class="chart-chip">0 รายการ</span>
+                            </header>
+                            <div id="statusChart" class="history-stat-stack">
+                                <div class="empty">กำลังโหลดกราฟ...</div>
+                            </div>
+                        </div>
+                        <div class="history-chart-card">
+                            <header>
+                                <h4>Operational Notes</h4>
+                                <span class="chart-chip">Flow check</span>
+                            </header>
+                            <div id="timelineStats" class="meta-kpis">
+                                <div class="empty">กำลังโหลดข้อมูล...</div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="chart-panel">
+                    <div class="chart-panel-head">
+                        <div>
+                            <h3>7 Day Trend</h3>
+                            <p>จำนวนรายการย้อนหลัง 7 วัน เพื่อดูแนวโน้มการใช้งาน QR</p>
+                        </div>
+                        <span class="chart-chip">Trend view</span>
+                    </div>
+                    <div id="dailyTrendChart" class="timeline-spark">
+                        <div class="empty">กำลังโหลดกราฟ...</div>
+                    </div>
+                </article>
+            </section>
+
+            <section class="panel history-list-card">
+                <div class="panel-head history-list-head">
+                    <div>
+                        <h3>รายการย้อนหลัง</h3>
+                        <p>กดรายการเพื่อดู Timeline และ Audit</p>
+                    </div>
+                    <span id="resultCount">0 รายการ</span>
+                </div>
+
+                <div id="orderList" class="order-list"></div>
+                <div id="emptyState" class="empty hidden">ไม่พบรายการตามตัวกรอง</div>
+            </section>
+        </main>
+    </div>
+</div>
+
+<div id="backdrop" class="backdrop hidden"></div>
+
+<aside id="detailDrawer" class="drawer hidden">
+    <div class="drawer-head">
+        <div>
+            <h2 id="detailTitle">รายละเอียด</h2>
+            <p id="detailSub">-</p>
+        </div>
+        <button id="closeDetailBtn" type="button">✕</button>
+    </div>
+
+    <div id="detailBody" class="drawer-body"></div>
+</aside>
+
+<script type="module" src="../js/self-order-history.js?v=4.15.1"></script>
+
+<script defer src="../js/ui-store-v3.21.js"></script>
+<script src="../js/ui-safe-v3.23.js"></script>
+<script src="../js/ui-bottom-nav-v3.26.js"></script>
+<script src="../js/ui-overlay-v3.27.js"></script>
+</body>
+</html>
