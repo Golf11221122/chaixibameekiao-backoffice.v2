@@ -1,6 +1,6 @@
 /*
  * CHAIXI BAMEEKIAO — Back Office Navigation
- * V4.21 — Pinned Daily Operations + Unified System Menu
+ * V4.22 — Daily Operations + Nested System Accordion
  *
  * Sidebar layout:
  *   1) งานวันนี้ (pinned, direct)
@@ -11,7 +11,8 @@
  *      - Stock & Cost
  *      - Purchasing
  *
- * Top subnav remains contextual for the selected main category.
+ * Every former top-subnav item now lives under its own sidebar category.
+ * The horizontal top subnav is hidden globally.
  */
 
 const NAV_SECTIONS = [
@@ -123,38 +124,89 @@ function ensureCss(root) {
     if (document.querySelector('link[data-chaixi-sidebar-css]')) return
     const link = document.createElement('link')
     link.rel = 'stylesheet'
-    link.href = `${root}css/backoffice-sidebar.css?v=4.21.0`
+    link.href = `${root}css/backoffice-sidebar.css?v=4.22.0`
     link.dataset.chaixiSidebarCss = 'true'
     document.head.appendChild(link)
 }
 
-function createCategoryLink(section, root, sectionNow) {
-    const link = document.createElement('a')
-    link.className = 'nav-category-link'
-    link.href = hrefFor(section.items[0], root)
-    link.dataset.sectionKey = section.key
 
-    if (!isOperationsPage(root) && section.key === sectionNow.key) {
+function createItemLink(item, root) {
+    const link = document.createElement('a')
+    link.className = 'nav-system-item'
+    link.href = hrefFor(item, root)
+
+    if (isCurrent(item, root)) {
         link.classList.add('active')
-        link.setAttribute('aria-current', 'true')
+        link.setAttribute('aria-current', 'page')
     }
 
     link.innerHTML = `
-        <span class="nav-category-icon">${section.icon}</span>
-        <span class="nav-category-label">${section.title}</span>
-        <span class="nav-category-arrow" aria-hidden="true">›</span>
+        <span class="nav-system-item-label">${item.label}</span>
+        <span class="nav-system-item-arrow" aria-hidden="true">›</span>
     `
     return link
+}
+
+function createCategoryAccordion(section, root, sectionNow, operationsPage) {
+    const wrap = document.createElement('div')
+    wrap.className = 'nav-category-group'
+    wrap.dataset.sectionKey = section.key
+
+    const toggle = document.createElement('button')
+    toggle.type = 'button'
+    toggle.className = 'nav-category-toggle'
+
+    const isSectionCurrent = !operationsPage && section.key === sectionNow.key
+    if (isSectionCurrent) toggle.classList.add('active')
+
+    toggle.innerHTML = `
+        <span class="nav-category-icon">${section.icon}</span>
+        <span class="nav-category-label">${section.title}</span>
+        <span class="nav-category-chevron" aria-hidden="true">⌄</span>
+    `
+
+    const body = document.createElement('div')
+    body.className = 'nav-category-body'
+    section.items.forEach(item => body.appendChild(createItemLink(item, root)))
+
+    const storageKey = `chaixi.bo.section.${section.key}.open`
+    let open = isSectionCurrent
+
+    // On งานวันนี้ keep categories compact until the user opens one.
+    // On a system page always reveal the current category so the active page is visible.
+    if (!isSectionCurrent) {
+        try { open = localStorage.getItem(storageKey) === '1' } catch {}
+    }
+
+    const applyOpen = () => {
+        wrap.classList.toggle('open', open)
+        body.hidden = !open
+        toggle.setAttribute('aria-expanded', String(open))
+        const chev = toggle.querySelector('.nav-category-chevron')
+        if (chev) chev.textContent = open ? '⌃' : '⌄'
+    }
+
+    toggle.addEventListener('click', () => {
+        open = !open
+        try { localStorage.setItem(storageKey, open ? '1' : '0') } catch {}
+        applyOpen()
+    })
+
+    wrap.append(toggle, body)
+    applyOpen()
+    return wrap
 }
 
 function renderSidebar(root, sectionNow) {
     const nav = document.querySelector('[data-backoffice-nav]')
     if (!nav) return
 
+    const operationsPage = isOperationsPage(root)
+
     const operations = document.createElement('a')
     operations.className = 'nav-daily-link'
     operations.href = `${root}operations.html`
-    if (isOperationsPage(root)) {
+    if (operationsPage) {
         operations.classList.add('active')
         operations.setAttribute('aria-current', 'page')
     }
@@ -173,32 +225,34 @@ function renderSidebar(root, sectionNow) {
     const toggle = document.createElement('button')
     toggle.type = 'button'
     toggle.className = 'nav-system-toggle'
-    toggle.setAttribute('aria-expanded', 'true')
     toggle.innerHTML = `
         <span class="nav-system-toggle-icon">☷</span>
         <span class="nav-system-toggle-copy">
             <strong>เมนูระบบ</strong>
-            <small>เมนู Back Office ทั้งหมด</small>
+            <small>กดเพื่อดูเมนูทั้งหมด</small>
         </span>
-        <span class="nav-system-chevron" aria-hidden="true">⌃</span>
+        <span class="nav-system-chevron" aria-hidden="true">⌄</span>
     `
 
     const body = document.createElement('div')
     body.className = 'nav-system-body'
-    NAV_SECTIONS.forEach(section => body.appendChild(createCategoryLink(section, root, sectionNow)))
+    NAV_SECTIONS.forEach(section => {
+        body.appendChild(createCategoryAccordion(section, root, sectionNow, operationsPage))
+    })
 
     const storageKey = 'chaixi.bo.systemMenuOpen'
-    let open = true
+    let open = !operationsPage
     try {
         const saved = localStorage.getItem(storageKey)
-        if (saved === '0') open = false
+        if (saved === '1') open = true
+        if (saved === '0' && operationsPage) open = false
     } catch {}
 
-    // If user is inside a system page, keep the menu expanded so current category is visible.
-    if (!isOperationsPage(root)) open = true
+    // When user is already inside a system page, keep master menu open.
+    if (!operationsPage) open = true
 
     const applyOpen = () => {
-        group.classList.toggle('collapsed', !open)
+        group.classList.toggle('open', open)
         body.hidden = !open
         toggle.setAttribute('aria-expanded', String(open))
         const chev = toggle.querySelector('.nav-system-chevron')
@@ -216,54 +270,14 @@ function renderSidebar(root, sectionNow) {
     applyOpen()
 }
 
-function renderSubnav(root, sectionNow) {
+function renderSubnav() {
+    // V4.22: Former horizontal top tabs are now nested under each sidebar category.
+    // Keep the slot in DOM for backward compatibility, but remove its UI completely.
     const slot = document.querySelector('[data-backoffice-subnav]')
-    if (!slot) {
-        console.warn('CHAIXI subnav slot not found on this page')
-        return
-    }
-
-    // งานวันนี้เป็น workflow หลัก ไม่ต้องแสดงแถบ Overview ซ้ำด้านบน
-    if (isOperationsPage(root)) {
-        slot.replaceChildren()
-        slot.style.display = 'none'
-        return
-    }
-
-    slot.style.display = ''
-    slot.className = 'backoffice-subnav'
-    slot.setAttribute('aria-label', `${sectionNow.title} navigation`)
-
-    const title = document.createElement('div')
-    title.className = 'backoffice-subnav-title'
-    title.innerHTML = `<span>${sectionNow.icon}</span><strong>${sectionNow.title}</strong>`
-
-    const scroller = document.createElement('div')
-    scroller.className = 'backoffice-subnav-scroll'
-
-    for (const item of sectionNow.items) {
-        const link = document.createElement('a')
-        link.className = 'backoffice-subnav-link'
-        link.href = hrefFor(item, root)
-        link.textContent = item.label
-
-        if (isCurrent(item, root)) {
-            link.classList.add('active')
-            link.setAttribute('aria-current', 'page')
-        }
-
-        scroller.appendChild(link)
-    }
-
-    slot.replaceChildren(title, scroller)
-
-    requestAnimationFrame(() => {
-        slot.querySelector('.backoffice-subnav-link.active')?.scrollIntoView({
-            behavior: 'auto',
-            block: 'nearest',
-            inline: 'center'
-        })
-    })
+    if (!slot) return
+    slot.replaceChildren()
+    slot.style.display = 'none'
+    slot.setAttribute('aria-hidden', 'true')
 }
 
 function initBackofficeNavigation() {
@@ -275,7 +289,7 @@ function initBackofficeNavigation() {
 
     ensureCss(root)
     renderSidebar(root, sectionNow)
-    renderSubnav(root, sectionNow)
+    renderSubnav()
 }
 
 if (document.readyState === 'loading') {
