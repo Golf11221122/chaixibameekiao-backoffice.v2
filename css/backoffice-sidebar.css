@@ -46,3 +46,47 @@
   .backoffice-subnav-scroll{gap:8px}
   .backoffice-subnav-link{min-height:36px;padding:7px 11px;font-size:11px}
 }
+
+/* ============================================================
+   V4.21 — Pinned Daily Operations + Unified System Menu
+   ============================================================ */
+[data-backoffice-nav]{display:grid;gap:10px;padding:2px 0 12px}
+
+#sidebar [data-backoffice-nav] .nav-daily-link,
+.sidebar [data-backoffice-nav] .nav-daily-link{
+    min-height:64px;display:grid;grid-template-columns:42px minmax(0,1fr) 18px;align-items:center;gap:10px;
+    padding:11px 12px;border:1px solid #b9dfc2;border-radius:16px;color:#175c2b;
+    background:linear-gradient(180deg,#f0fbf3 0%,#e9f8ed 100%);text-decoration:none;
+    box-shadow:0 7px 18px rgba(24,128,56,.10);position:relative;
+    transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease
+}
+#sidebar [data-backoffice-nav] .nav-daily-link:hover,
+.sidebar [data-backoffice-nav] .nav-daily-link:hover{
+    transform:translateY(-1px);border-color:#8dca9c;box-shadow:0 10px 22px rgba(24,128,56,.14)
+}
+#sidebar [data-backoffice-nav] .nav-daily-link.active,
+.sidebar [data-backoffice-nav] .nav-daily-link.active{
+    color:#fff;border-color:#188038;background:linear-gradient(180deg,#1f8e43 0%,#177337 100%);
+    box-shadow:0 12px 26px rgba(24,128,56,.24)
+}
+.nav-daily-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:#188038;color:#fff;font-size:21px;font-weight:1000}
+.nav-daily-link.active .nav-daily-icon{background:#fff;color:#188038}
+.nav-daily-copy{display:grid;gap:1px;min-width:0}.nav-daily-copy strong{font-size:14px;font-weight:950;line-height:1.2}.nav-daily-copy small{font-size:10px;font-weight:750;opacity:.75;letter-spacing:.04em;text-transform:uppercase}.nav-daily-arrow{justify-self:end;font-size:21px;font-weight:900;opacity:.75}
+
+.nav-system-group{display:grid;gap:8px;margin-top:1px}
+.nav-system-toggle{
+    width:100%;min-height:50px;display:grid;grid-template-columns:34px minmax(0,1fr) 20px;align-items:center;gap:10px;
+    padding:9px 11px;border:1px solid #344054;border-radius:14px;background:linear-gradient(180deg,#263241 0%,#202b38 100%);
+    color:#fff;cursor:pointer;text-align:left;box-shadow:0 5px 14px rgba(0,0,0,.12)
+}
+.nav-system-toggle:hover{background:linear-gradient(180deg,#303d4d 0%,#263241 100%)}
+.nav-system-toggle-icon{display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.10);font-size:17px}
+.nav-system-toggle-copy{display:grid;gap:1px;min-width:0}.nav-system-toggle-copy strong{font-size:12px;font-weight:900;letter-spacing:.04em;text-transform:uppercase}.nav-system-toggle-copy small{font-size:9px;font-weight:650;color:#cbd5e1}.nav-system-chevron{justify-self:end;font-size:15px;color:#d0d5dd}
+.nav-system-body{display:grid;gap:8px;padding-top:1px}
+.nav-system-group.collapsed .nav-system-toggle{border-color:#475467}
+
+@media(max-width:760px){
+  #sidebar [data-backoffice-nav] .nav-daily-link,
+  .sidebar [data-backoffice-nav] .nav-daily-link{min-height:58px}
+  .nav-daily-copy strong{font-size:13px}
+}
