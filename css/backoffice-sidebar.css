@@ -1,92 +1,210 @@
 /*
  * CHAIXI BAMEEKIAO
- * UI REFRESH V4.0 — MAIN CATEGORY SIDEBAR + TOP SUBNAV
+ * V4.22 — DAILY OPERATIONS + NESTED SYSTEM ACCORDION
+ *
+ * - งานวันนี้ pinned on top
+ * - เมนูระบบ is a master accordion
+ * - Each category expands its former top tabs underneath
+ * - Horizontal top subnav is hidden globally
  */
 
-[data-backoffice-nav]{display:grid;gap:8px;padding:2px 0 12px}
-#sidebar [data-backoffice-nav] .nav-category-link,
-.sidebar [data-backoffice-nav] .nav-category-link{
-    min-height:54px;display:grid;grid-template-columns:36px minmax(0,1fr) 18px;align-items:center;gap:10px;
-    padding:11px 12px;border:1px solid #edf0f3;border-radius:16px;color:#344054;background:linear-gradient(180deg,#fff 0%,#fbfbfd 100%);
-    text-decoration:none;font-weight:800;box-shadow:0 3px 10px rgba(16,24,40,.03);
-    transition:background-color .16s ease,border-color .16s ease,color .16s ease,transform .16s ease,box-shadow .16s ease;
-}
-#sidebar [data-backoffice-nav] .nav-category-link:hover,
-.sidebar [data-backoffice-nav] .nav-category-link:hover{
-    color:#101828;background:#fff;border-color:#e3e8ef;box-shadow:0 8px 20px rgba(16,24,40,.05);transform:translateY(-1px)
-}
-#sidebar [data-backoffice-nav] .nav-category-link.active,
-.sidebar [data-backoffice-nav] .nav-category-link.active{
-    color:#9f221c;background:linear-gradient(180deg,#fff5f4 0%,#fff1f0 100%);border-color:#f0d1cf;
-    box-shadow:0 10px 24px rgba(179,38,30,.10);font-weight:900
-}
-#sidebar [data-backoffice-nav] .nav-category-link.active::before,
-.sidebar [data-backoffice-nav] .nav-category-link.active::before{
-    content:"";position:absolute;left:0;top:10px;bottom:10px;width:4px;border-radius:999px;background:linear-gradient(180deg,#c6342b 0%,#ef9a94 100%)
-}
-.nav-category-link{position:relative}
-.nav-category-icon{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:12px;background:#fff4f3;font-size:16px;transition:background-color .16s ease,color .16s ease}
-.nav-category-link:hover .nav-category-icon{background:#fff0ef}
-.nav-category-link.active .nav-category-icon{background:linear-gradient(180deg,#c6342b 0%,#a7241d 100%);color:#fff}
-.nav-category-label{min-width:0;font-size:12px;line-height:1.35;letter-spacing:.03em;text-transform:uppercase}
-.nav-category-arrow{justify-self:end;color:#98a2b3;font-size:20px}
-.nav-category-link.active .nav-category-arrow{color:#b3261e}
-
-[data-backoffice-subnav]{display:block;margin:0 0 16px}
-.backoffice-subnav{display:grid;gap:10px;padding:14px 16px;border:1px solid #e6e9ef;border-radius:20px;background:rgba(255,255,255,.96);box-shadow:0 10px 28px rgba(16,24,40,.05)}
-.backoffice-subnav-title{display:flex;align-items:center;gap:10px;color:#182230;font-size:14px;font-weight:900;letter-spacing:-.01em}
-.backoffice-subnav-title span{display:grid;place-items:center;width:30px;height:30px;border-radius:10px;background:#fff3f2}
-.backoffice-subnav-scroll{display:flex;gap:10px;overflow:auto;padding-bottom:2px;scrollbar-width:thin}
-.backoffice-subnav-link{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:8px 12px;border:1px solid #edf0f3;border-radius:12px;background:#fcfcfd;color:#475467;text-decoration:none;font-size:12px;font-weight:800;white-space:nowrap;box-shadow:0 2px 8px rgba(16,24,40,.03);transition:transform .14s ease,border-color .14s ease,box-shadow .14s ease,background-color .14s ease,color .14s ease}
-.backoffice-subnav-link:hover{transform:translateY(-1px);border-color:#e0e6ed;background:#fff;color:#182230}
-.backoffice-subnav-link.active{border-color:#f0d1cf;background:linear-gradient(180deg,#fff5f4 0%,#fff1f0 100%);color:#9f221c;box-shadow:0 8px 18px rgba(179,38,30,.09)}
-
-@media(max-width:760px){
-  .backoffice-subnav{padding:12px 12px 10px;border-radius:18px}
-  .backoffice-subnav-scroll{gap:8px}
-  .backoffice-subnav-link{min-height:36px;padding:7px 11px;font-size:11px}
+[data-backoffice-nav]{
+  display:grid;
+  gap:10px;
+  padding:2px 0 16px;
 }
 
-/* ============================================================
-   V4.21 — Pinned Daily Operations + Unified System Menu
-   ============================================================ */
-[data-backoffice-nav]{display:grid;gap:10px;padding:2px 0 12px}
-
+/* Daily Operations */
 #sidebar [data-backoffice-nav] .nav-daily-link,
 .sidebar [data-backoffice-nav] .nav-daily-link{
-    min-height:64px;display:grid;grid-template-columns:42px minmax(0,1fr) 18px;align-items:center;gap:10px;
-    padding:11px 12px;border:1px solid #b9dfc2;border-radius:16px;color:#175c2b;
-    background:linear-gradient(180deg,#f0fbf3 0%,#e9f8ed 100%);text-decoration:none;
-    box-shadow:0 7px 18px rgba(24,128,56,.10);position:relative;
-    transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease
+  min-height:64px;
+  display:grid;
+  grid-template-columns:42px minmax(0,1fr) 18px;
+  align-items:center;
+  gap:10px;
+  padding:11px 12px;
+  border:1px solid rgba(121,213,145,.36);
+  border-radius:16px;
+  color:#c9f5d4;
+  background:linear-gradient(180deg,rgba(27,132,63,.26) 0%,rgba(18,104,49,.22) 100%);
+  text-decoration:none;
+  box-shadow:0 7px 18px rgba(0,0,0,.10);
+  transition:.16s ease;
 }
 #sidebar [data-backoffice-nav] .nav-daily-link:hover,
 .sidebar [data-backoffice-nav] .nav-daily-link:hover{
-    transform:translateY(-1px);border-color:#8dca9c;box-shadow:0 10px 22px rgba(24,128,56,.14)
+  transform:translateY(-1px);
+  border-color:rgba(134,224,157,.58);
 }
 #sidebar [data-backoffice-nav] .nav-daily-link.active,
 .sidebar [data-backoffice-nav] .nav-daily-link.active{
-    color:#fff;border-color:#188038;background:linear-gradient(180deg,#1f8e43 0%,#177337 100%);
-    box-shadow:0 12px 26px rgba(24,128,56,.24)
+  color:#fff;
+  border-color:#21964a;
+  background:linear-gradient(180deg,#219b4d 0%,#17783a 100%);
+  box-shadow:0 12px 26px rgba(24,128,56,.25);
 }
-.nav-daily-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:#188038;color:#fff;font-size:21px;font-weight:1000}
-.nav-daily-link.active .nav-daily-icon{background:#fff;color:#188038}
-.nav-daily-copy{display:grid;gap:1px;min-width:0}.nav-daily-copy strong{font-size:14px;font-weight:950;line-height:1.2}.nav-daily-copy small{font-size:10px;font-weight:750;opacity:.75;letter-spacing:.04em;text-transform:uppercase}.nav-daily-arrow{justify-self:end;font-size:21px;font-weight:900;opacity:.75}
+.nav-daily-icon{
+  display:grid;place-items:center;width:40px;height:40px;border-radius:12px;
+  background:#fff;color:#188038;font-size:21px;font-weight:1000;
+}
+.nav-daily-copy{display:grid;gap:1px;min-width:0}
+.nav-daily-copy strong{font-size:14px;font-weight:950;line-height:1.2}
+.nav-daily-copy small{font-size:10px;font-weight:750;opacity:.72;letter-spacing:.04em;text-transform:uppercase}
+.nav-daily-arrow{justify-self:end;font-size:21px;font-weight:900;opacity:.78}
 
-.nav-system-group{display:grid;gap:8px;margin-top:1px}
-.nav-system-toggle{
-    width:100%;min-height:50px;display:grid;grid-template-columns:34px minmax(0,1fr) 20px;align-items:center;gap:10px;
-    padding:9px 11px;border:1px solid #344054;border-radius:14px;background:linear-gradient(180deg,#263241 0%,#202b38 100%);
-    color:#fff;cursor:pointer;text-align:left;box-shadow:0 5px 14px rgba(0,0,0,.12)
+/* Master system accordion */
+.nav-system-group{
+  display:grid;
+  gap:8px;
 }
-.nav-system-toggle:hover{background:linear-gradient(180deg,#303d4d 0%,#263241 100%)}
-.nav-system-toggle-icon{display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.10);font-size:17px}
-.nav-system-toggle-copy{display:grid;gap:1px;min-width:0}.nav-system-toggle-copy strong{font-size:12px;font-weight:900;letter-spacing:.04em;text-transform:uppercase}.nav-system-toggle-copy small{font-size:9px;font-weight:650;color:#cbd5e1}.nav-system-chevron{justify-self:end;font-size:15px;color:#d0d5dd}
-.nav-system-body{display:grid;gap:8px;padding-top:1px}
-.nav-system-group.collapsed .nav-system-toggle{border-color:#475467}
+.nav-system-toggle{
+  width:100%;
+  min-height:50px;
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr) 20px;
+  align-items:center;
+  gap:10px;
+  padding:9px 11px;
+  border:1px solid #3c4a5e;
+  border-radius:14px;
+  background:linear-gradient(180deg,#263446 0%,#202c3b 100%);
+  color:#fff;
+  cursor:pointer;
+  text-align:left;
+  box-shadow:0 5px 14px rgba(0,0,0,.13);
+}
+.nav-system-toggle:hover{background:linear-gradient(180deg,#304056 0%,#263446 100%)}
+.nav-system-toggle-icon{
+  display:grid;place-items:center;width:32px;height:32px;border-radius:10px;
+  background:rgba(255,255,255,.10);font-size:17px
+}
+.nav-system-toggle-copy{display:grid;gap:1px;min-width:0}
+.nav-system-toggle-copy strong{font-size:12px;font-weight:900;letter-spacing:.04em;text-transform:uppercase}
+.nav-system-toggle-copy small{font-size:9px;font-weight:650;color:#cbd5e1}
+.nav-system-chevron{justify-self:end;font-size:15px;color:#d0d5dd}
+.nav-system-body{
+  display:grid;
+  gap:7px;
+  padding:2px 0 2px;
+}
+
+/* Main category row */
+.nav-category-group{
+  display:grid;
+  gap:4px;
+}
+.nav-category-toggle{
+  width:100%;
+  min-height:48px;
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr) 20px;
+  align-items:center;
+  gap:9px;
+  padding:8px 10px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:13px;
+  background:rgba(255,255,255,.045);
+  color:#e8edf5;
+  cursor:pointer;
+  text-align:left;
+  transition:.15s ease;
+}
+.nav-category-toggle:hover{
+  background:rgba(255,255,255,.08);
+  border-color:rgba(255,255,255,.15);
+}
+.nav-category-toggle.active,
+.nav-category-group.open .nav-category-toggle{
+  background:rgba(255,255,255,.075);
+}
+.nav-category-toggle.active{
+  border-color:rgba(239,110,101,.45);
+  color:#fff;
+}
+.nav-category-icon{
+  display:grid;place-items:center;width:32px;height:32px;border-radius:10px;
+  background:rgba(255,255,255,.08);
+  font-size:16px;
+}
+.nav-category-toggle.active .nav-category-icon{
+  background:linear-gradient(180deg,#c9342c 0%,#a8231d 100%);
+}
+.nav-category-label{
+  min-width:0;
+  font-size:11px;
+  line-height:1.35;
+  font-weight:900;
+  letter-spacing:.025em;
+  text-transform:uppercase;
+}
+.nav-category-chevron{
+  justify-self:end;
+  color:#aeb9c7;
+  font-size:14px;
+}
+
+/* Nested page rows — these replace former horizontal top tabs */
+.nav-category-body{
+  display:grid;
+  gap:3px;
+  padding:1px 3px 5px 17px;
+  border-left:1px solid rgba(255,255,255,.10);
+  margin-left:16px;
+}
+.nav-system-item{
+  min-height:37px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 16px;
+  align-items:center;
+  gap:8px;
+  padding:7px 9px 7px 11px;
+  border:1px solid transparent;
+  border-radius:10px;
+  color:#bfc9d7;
+  text-decoration:none;
+  font-size:10.5px;
+  font-weight:760;
+  line-height:1.3;
+  transition:.14s ease;
+}
+.nav-system-item:hover{
+  color:#fff;
+  background:rgba(255,255,255,.07);
+}
+.nav-system-item.active{
+  color:#fff;
+  border-color:rgba(239,110,101,.28);
+  background:linear-gradient(90deg,rgba(190,47,38,.32) 0%,rgba(190,47,38,.12) 100%);
+  font-weight:900;
+}
+.nav-system-item.active::before{
+  content:"";
+  width:3px;
+  height:20px;
+  border-radius:999px;
+  background:#ef695f;
+  position:absolute;
+  transform:translateX(-12px);
+}
+.nav-system-item{position:relative}
+.nav-system-item-label{min-width:0}
+.nav-system-item-arrow{justify-self:end;color:#8996a8;font-size:15px}
+.nav-system-item.active .nav-system-item-arrow{color:#ffd4d1}
+
+/* Kill the former top horizontal navigation everywhere */
+[data-backoffice-subnav],
+.backoffice-subnav{
+  display:none !important;
+}
+
+/* Preserve content spacing after removing top subnav */
+.main .content > [data-backoffice-subnav] + *{
+  margin-top:0;
+}
 
 @media(max-width:760px){
   #sidebar [data-backoffice-nav] .nav-daily-link,
   .sidebar [data-backoffice-nav] .nav-daily-link{min-height:58px}
   .nav-daily-copy strong{font-size:13px}
+  .nav-system-item{font-size:10px}
 }
