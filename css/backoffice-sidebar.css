@@ -208,3 +208,15 @@
   .nav-daily-copy strong{font-size:13px}
   .nav-system-item{font-size:10px}
 }
+
+
+/* ============================================================
+   V4.24 CRITICAL COLLAPSE FIX
+   The `hidden` HTML attribute was being overridden by author CSS
+   (`display:grid` on .nav-system-body / .nav-category-body).
+   Therefore collapsed menus were still visible.
+   ============================================================ */
+.nav-system-body[hidden],
+.nav-category-body[hidden]{
+  display:none !important;
+}
