@@ -45,6 +45,40 @@ function isDone(k){if(mode!=='daily')return isManualDone(k);if(k==='D01')return 
 function firstIncomplete(){return rows().find(x=>!isDone(x.key))?.key||null}
 function unlocked(index){if(index===0)return true;return rows().slice(0,index).every(x=>isDone(x.key))}
 function signalDetail(k){if(mode!=='daily')return '';if(k==='D01')return signals.shiftOpened?`มีกะแล้ว • ${signals.shiftCount||1} กะ`: 'ยังไม่พบกะของวันนี้';if(k==='D03'&&signals.openPoCount!=null)return ` • PO เปิดอยู่ ${signals.openPoCount} รายการ`;if(k==='D04'&&signals.productionCount!=null)return ` • Production วันนี้ ${signals.productionCount} Batch`;if(k==='D08')return signals.closingComplete?'ทุกกะปิดและนับเงินครบแล้ว':`ปิดกะ ${signals.closedShiftCount||0}/${signals.shiftCount||0} • นับเงิน ${signals.countedShiftCount||0}/${signals.shiftCount||0}`;if(k==='D10')return signals.eodComplete?'Business Date ปิดแล้ว':'รอ End of Day';return ''}
+function stepMeta(x){
+  if(mode==='daily'&&x.key==='D01'&&signals.shiftOpened){
+    return {
+      top: signals.shiftOpenedAt ? dt(signals.shiftOpenedAt) : 'ตรวจจากระบบ',
+      bottom: signals.shiftOpenedBy ? `โดย ${signals.shiftOpenedBy}` : `${signals.shiftCount||1} กะเปิดแล้ว`
+    }
+  }
+  if(mode==='daily'&&x.key==='D08'){
+    return {
+      top: signals.closingComplete ? 'Daily Closing Complete' : 'รอปิดกะ',
+      bottom: `ปิด ${signals.closedShiftCount||0}/${signals.shiftCount||0} • นับเงิน ${signals.countedShiftCount||0}/${signals.shiftCount||0}`
+    }
+  }
+  if(mode==='daily'&&x.key==='D10'){
+    return {
+      top: signals.eodComplete ? 'EOD Complete' : 'รอ End of Day',
+      bottom: signals.currentBusinessDate ? `Business Date ${signals.currentBusinessDate}` : 'ตรวจจากระบบ'
+    }
+  }
+  if(manual[x.key]){
+    return {
+      top: dt(manual[x.key].completed_at),
+      bottom: `โดย ${manual[x.key].completed_by_name||'-'}`
+    }
+  }
+  if(mode==='daily'&&x.key==='D03'&&signals.openPoCount!=null){
+    return {top:`PO เปิด ${signals.openPoCount}`,bottom:'ตรวจรายการรับสินค้า'}
+  }
+  if(mode==='daily'&&x.key==='D04'&&signals.productionCount!=null){
+    return {top:`Production ${signals.productionCount}`,bottom:'Batch วันนี้'}
+  }
+  return {top:'ยังไม่ Complete',bottom:'รอตามลำดับงาน'}
+}
+
 async function loadManual(){const {data,error}=await supabase.rpc('backoffice_operations_list_v1',{p_period_type:periodType(),p_period_key:periodKey});if(error)throw error;manual={};(data||[]).forEach(x=>manual[x.task_key]=x)}
 async function mark(key){let idx=rows().findIndex(x=>x.key===key);if(!unlocked(idx))return alert('กรุณาทำขั้นตอนก่อนหน้าให้ Complete ก่อน');const {error}=await supabase.rpc('backoffice_operations_mark_v1',{p_period_type:periodType(),p_period_key:periodKey,p_task_key:key,p_note:null});if(error)return alert(error.message);await refresh()}
 async function unmark(key){if(!confirm('ยกเลิกสถานะ Complete ของขั้นตอนนี้?'))return;const {error}=await supabase.rpc('backoffice_operations_unmark_v1',{p_period_type:periodType(),p_period_key:periodKey,p_task_key:key});if(error)return alert(error.message);await refresh()}
@@ -55,8 +89,68 @@ async function loadDailySignals(){signals={};const selected=periodKey;try{const 
  try{const from=`${selected}T00:00:00+07:00`,to=`${selected}T23:59:59+07:00`;const {data}=await supabase.rpc('backoffice_list_production_batches',{p_from:from,p_to:to});signals.productionCount=(data||[]).length}catch{}
  try{const bd=await currentBusinessDate();signals.currentBusinessDate=bd;signals.eodComplete=bd>selected}catch{signals.eodComplete=false}}
 function renderSummary(){let list=rows(),done=list.filter(x=>isDone(x.key)).length,pct=Math.round(done/list.length*100);$('progressText').textContent=`${done}/${list.length} Complete`;$('progressPct').textContent=`${pct}%`;$('progressBar').style.width=`${pct}%`;let cards=[];if(mode==='daily')cards=[['Business Date',periodKey],['กะวันนี้',signals.shiftCount??'-'],['PO เปิดอยู่',signals.openPoCount??'-'],['Production วันนี้',signals.productionCount??'-']];else cards=[['รอบ',periodKey],['Complete',done],['คงเหลือ',list.length-done],['สถานะ',done===list.length?'พร้อมปิด':'กำลังดำเนินการ']];$('summaryCards').innerHTML=cards.map(x=>`<div class="ops-kpi"><small>${esc(x[0])}</small><strong>${esc(x[1])}</strong></div>`).join('');$('completeBanner').classList.toggle('ops-hidden',done!==list.length);$('completeBanner').textContent=mode==='daily'?'✅ งานประจำวันครบทุกขั้นตอนแล้ว':mode==='month'?'✅ Month-End Checklist ครบแล้ว พร้อมเริ่มเดือนใหม่':'✅ Year-End Checklist ครบแล้ว พร้อมเริ่มปีใหม่'}
-function render(){renderSummary();let first=firstIncomplete(),html='',lastGroup='';rows().forEach((x,i)=>{if(x.group!==lastGroup){if(lastGroup)html+='</div></section>';html+=`<section class="ops-section"><div class="ops-section-title"><h3>${esc(x.group)}</h3></div><div class="ops-list">`;lastGroup=x.group}let done=isDone(x.key),lock=!unlocked(i),manualDone=isManualDone(x.key),cls=done?'complete':lock?'locked':x.key===first?'current':'',status=done?'✓ Complete':lock?'🔒 Locked':'● Pending',detail=x.detail+signalDetail(x.key);let actions='';if(x.href)actions+=`<a class="ops-btn" ${lock?'aria-disabled="true" tabindex="-1"':'href="'+x.href+'"'}>${esc(x.label||'เปิด')}</a>`;if(!x.auto&&!done)actions+=`<button class="ops-btn primary" data-mark="${x.key}" ${lock?'disabled':''}>✓ ยืนยันเสร็จแล้ว</button>`;if(!x.auto&&done)actions+=`<button class="ops-btn done" disabled>✓ Complete</button><button class="ops-btn" data-unmark="${x.key}">แก้ไข</button>`;if(x.auto&&!done&&!x.href)actions+=`<button class="ops-btn" disabled>รอระบบตรวจ</button>`;let stamp=manualDone?` • ${esc(manual[x.key].completed_by_name||'-')} ${dt(manual[x.key].completed_at)}`:'';html+=`<article class="ops-step ${cls}"><div class="ops-step-no">${done?'✓':i+1}</div><div><div class="ops-step-title">${esc(x.title)} <span class="ops-status">${status}</span></div><div class="ops-step-detail">${esc(detail)}${stamp}</div></div><div class="ops-actions">${actions}</div></article>`});if(lastGroup)html+='</div></section>';$('workflow').innerHTML=html;document.querySelectorAll('[data-mark]').forEach(b=>b.onclick=()=>mark(b.dataset.mark));document.querySelectorAll('[data-unmark]').forEach(b=>b.onclick=()=>unmark(b.dataset.unmark));let done=rows().filter(x=>isDone(x.key)).length;$('message').className='ops-message '+(done===rows().length?'ok':'warn');$('message').textContent=done===rows().length?'งานรอบนี้ครบแล้ว':`ขั้นตอนถัดไป: ${rows().find(x=>x.key===first)?.title||'-'} • กรุณาทำตามลำดับเพื่อไม่ให้ข้ามงานสำคัญ`}
+function render(){
+  renderSummary();
+  let first=firstIncomplete(),html='',lastGroup='';
+  rows().forEach((x,i)=>{
+    if(x.group!==lastGroup){
+      if(lastGroup)html+='</div></section>';
+      html+=`<section class="ops-section"><div class="ops-section-title"><h3>${esc(x.group)}</h3></div><div class="ops-list">`;
+      lastGroup=x.group;
+    }
+
+    let done=isDone(x.key),
+        lock=!unlocked(i),
+        manualDone=isManualDone(x.key),
+        cls=done?'complete':lock?'locked':x.key===first?'current':'',
+        status=done?'✓ Complete':lock?'🔒 Locked':x.key===first?'● กำลังทำ':'● Pending',
+        detail=x.detail+signalDetail(x.key),
+        meta=stepMeta(x);
+
+    let actions='';
+    if(x.href){
+      actions+=`<a class="ops-btn" ${lock?'aria-disabled="true" tabindex="-1"':'href="'+x.href+'"'}>${esc(x.label||'ดูรายละเอียด')}</a>`;
+    }
+    if(!x.auto&&!done){
+      actions+=`<button class="ops-btn primary" data-mark="${x.key}" ${lock?'disabled':''}>${x.key===first?'ทำตอนนี้':'ยืนยันเสร็จ'}</button>`;
+    }
+    if(!x.auto&&done){
+      actions+=`<button class="ops-btn done" disabled>✓ Complete</button><button class="ops-btn" data-unmark="${x.key}">แก้ไข</button>`;
+    }
+    if(x.auto&&!done&&!x.href){
+      actions+=`<button class="ops-btn" disabled>รอระบบ</button>`;
+    }
+
+    html+=`
+      <article class="ops-step ${cls}">
+        <div class="ops-step-no">${done?'✓':i+1}</div>
+        <div class="ops-step-main">
+          <div class="ops-step-title-row">
+            <div class="ops-step-title">${esc(x.title)}</div>
+            <span class="ops-status">${status}</span>
+          </div>
+          <div class="ops-step-detail" title="${esc(detail)}">${esc(detail)}</div>
+        </div>
+        <div class="ops-step-meta">
+          <strong>${esc(meta.top||'-')}</strong>
+          <span>${esc(meta.bottom||'-')}</span>
+        </div>
+        <div class="ops-actions">${actions}</div>
+      </article>`;
+  });
+  if(lastGroup)html+='</div></section>';
+
+  $('workflow').innerHTML=html;
+  document.querySelectorAll('[data-mark]').forEach(b=>b.onclick=()=>mark(b.dataset.mark));
+  document.querySelectorAll('[data-unmark]').forEach(b=>b.onclick=()=>unmark(b.dataset.unmark));
+
+  let done=rows().filter(x=>isDone(x.key)).length;
+  $('message').className='ops-message '+(done===rows().length?'ok':'warn');
+  $('message').textContent=done===rows().length
+    ? 'งานรอบนี้ครบแล้ว'
+    : `ขั้นตอนถัดไป: ${rows().find(x=>x.key===first)?.title||'-'} • ทำตามลำดับเพื่อไม่ข้ามงานสำคัญ`;
+}
 function setupPeriodControls(){let now=new Date();if(mode==='daily'){periodKey=periodKey&&/^\d{4}-\d{2}-\d{2}$/.test(periodKey)?periodKey:localDate();$('periodControls').innerHTML=`<label>Business Date <input id="periodInput" type="date" value="${periodKey}"></label>`}else if(mode==='month'){periodKey=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;$('periodControls').innerHTML=`<label>เดือน <input id="periodInput" type="month" value="${periodKey}"></label>`}else{periodKey=String(now.getFullYear());$('periodControls').innerHTML=`<label>ปี <input id="periodInput" type="number" min="2020" max="2100" value="${periodKey}"></label>`}$('periodInput').onchange=async e=>{periodKey=e.target.value;await refresh()}}
 async function refresh(){try{$('message').className='ops-message';$('message').textContent='กำลังตรวจสอบสถานะ...';await loadManual();if(mode==='daily')await loadDailySignals();render()}catch(e){console.error(e);$('message').className='ops-message warn';$('message').textContent='โหลด Workflow ไม่สำเร็จ: '+(e?.message||'Unknown error')}}
-document.querySelectorAll('.ops-tab').forEach(b=>b.onclick=async()=>{document.querySelectorAll('.ops-tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');mode=b.dataset.mode;$('opsTitle').textContent=mode==='daily'?'ลำดับงานประจำวัน':mode==='month'?'Month-End Closing':'Year-End Closing';$('opsSubtitle').textContent=mode==='daily'?'ทำตามขั้นตอนจากบนลงล่าง ระบบจะเปลี่ยนเป็นสีเขียวเมื่อ Complete':mode==='month'?'เช็กลิสต์ก่อนปิดเดือนและเริ่มเดือนใหม่':'เช็กลิสต์ก่อนปิดปีและเริ่มปีใหม่';setupPeriodControls();await refresh()});$('refreshBtn').onclick=refresh;
+document.querySelectorAll('.ops-tab').forEach(b=>b.onclick=async()=>{document.querySelectorAll('.ops-tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');mode=b.dataset.mode;$('opsTitle').textContent=mode==='daily'?'งานวันนี้':mode==='month'?'Month-End Closing':'Year-End Closing';$('opsSubtitle').textContent=mode==='daily'?'ทำตามขั้นตอนจากบนลงล่าง ระบบจะเปลี่ยนเป็นสีเขียวเมื่อ Complete':mode==='month'?'เช็กลิสต์ก่อนปิดเดือนและเริ่มเดือนใหม่':'เช็กลิสต์ก่อนปิดปีและเริ่มปีใหม่';setupPeriodControls();await refresh()});$('refreshBtn').onclick=refresh;
 ctx=await requireBackoffice();if(ctx){setupShell(ctx,'operations');try{periodKey=await currentBusinessDate()}catch{periodKey=localDate()}setupPeriodControls();await refresh()}
