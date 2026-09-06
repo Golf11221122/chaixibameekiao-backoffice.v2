@@ -220,3 +220,12 @@
 .nav-category-body[hidden]{
   display:none !important;
 }
+
+
+/* V4.25 HARD COLLAPSE — defensive fallback */
+.nav-system-body[aria-hidden="true"],
+.nav-category-body[aria-hidden="true"],
+.nav-system-body[hidden],
+.nav-category-body[hidden]{
+  display:none !important;
+}
