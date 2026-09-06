@@ -11,6 +11,7 @@ import {
 } from './report-tools.js';
 
 const $ = id => document.getElementById(id);
+let salesBaselineDate = null;
 
 const el = {
     dateFrom: $('dateFrom'),
@@ -56,6 +57,30 @@ function setDefaultDates() {
     const start = new Date(now.getFullYear(), now.getMonth(), 1);
     el.dateFrom.value = localDateValue(start);
     el.dateTo.value = localDateValue(now);
+}
+
+async function loadSalesBaseline() {
+    const { data, error } = await supabase.rpc('backoffice_sales_reporting_baseline_v1');
+    if (error) throw error;
+
+    salesBaselineDate = data?.business_date || null;
+
+    if (salesBaselineDate) {
+        el.dateFrom.min = salesBaselineDate;
+        el.dateTo.min = salesBaselineDate;
+
+        if (!el.dateFrom.value || el.dateFrom.value < salesBaselineDate) {
+            el.dateFrom.value = salesBaselineDate;
+        }
+        if (el.dateTo.value && el.dateTo.value < salesBaselineDate) {
+            el.dateTo.value = salesBaselineDate;
+        }
+    }
+}
+
+function clampToSalesBaseline(value) {
+    if (!salesBaselineDate || !value) return value;
+    return value < salesBaselineDate ? salesBaselineDate : value;
 }
 
 function formatDate(value) {
@@ -235,8 +260,13 @@ function setHistoryLoading() {
 }
 
 async function loadHistory() {
-    const from = el.dateFrom.value;
+    let from = el.dateFrom.value;
     const to = el.dateTo.value;
+
+    from = clampToSalesBaseline(from);
+    if (from !== el.dateFrom.value) {
+        el.dateFrom.value = from;
+    }
 
     if (!from || !to) {
         setMessage(
@@ -407,6 +437,11 @@ function renderBills(sales) {
 async function loadDayDetail(businessDate) {
     if (!businessDate) return;
 
+    if (salesBaselineDate && businessDate < salesBaselineDate) {
+        setMessage('ข้อมูลก่อนวันเริ่มยอดขายจริงถูกเก็บไว้เป็นข้อมูลทดลอง และไม่นำมาแสดงในรายงานนี้', 'info');
+        return;
+    }
+
     setMessage(
         '\u0e01\u0e33\u0e25\u0e31\u0e07\u0e42\u0e2b\u0e25\u0e14\u0e23\u0e32\u0e22\u0e25\u0e30\u0e40\u0e2d\u0e35\u0e22\u0e14...',
         'info'
@@ -542,6 +577,7 @@ async function init() {
 
         setupShell(ctx, 'sales-history');
 
+        await loadSalesBaseline();
         await loadHistory();
     } catch (error) {
         console.error('Init sales history error:', error);

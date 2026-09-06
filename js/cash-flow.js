@@ -2,21 +2,37 @@ import { supabase } from './supabase.js'
 import { requireBackoffice, setupShell, money, esc } from './auth.js'
 
 const $=id=>document.getElementById(id)
-let ctx=null,daily=[],outflows=[]
+let ctx=null,daily=[],outflows=[],salesBaselineDate=null
 
 function iso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function dateText(v){return v?new Date(v+'T00:00:00').toLocaleDateString('th-TH'):'-'}
 function msg(t=''){$('message').textContent=t}
+
+async function loadBaseline(){
+  const {data,error}=await supabase.rpc('backoffice_sales_reporting_baseline_v1')
+  if(error)throw error
+  salesBaselineDate=data?.business_date||null
+  if(salesBaselineDate){
+    $('dateFrom').min=salesBaselineDate
+    $('dateTo').min=salesBaselineDate
+  }
+}
+function clampRange(){
+  if(salesBaselineDate&&$('dateFrom').value<salesBaselineDate)$('dateFrom').value=salesBaselineDate
+  if(salesBaselineDate&&$('dateTo').value<salesBaselineDate)$('dateTo').value=salesBaselineDate
+}
 
 function setRange(days){
   const end=new Date(),start=new Date()
   start.setDate(end.getDate()-Number(days))
   $('dateFrom').value=iso(start)
   $('dateTo').value=iso(end)
+  clampRange()
   load()
 }
 
 async function load(){
+  clampRange()
   const from=$('dateFrom').value,to=$('dateTo').value
   if(!from||!to)return
   msg('กำลังโหลด...')
@@ -75,7 +91,12 @@ async function init(){
   ctx=await requireBackoffice()
   if(!ctx)return
   setupShell(ctx,'cash-flow')
-  setRange(29)
+  try{
+    await loadBaseline()
+    setRange(29)
+  }catch(e){
+    msg(e?.message||'โหลดวันเริ่มยอดขายจริงไม่สำเร็จ')
+  }
 }
 
 $('refreshBtn').onclick=load
