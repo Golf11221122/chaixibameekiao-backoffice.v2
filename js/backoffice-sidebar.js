@@ -1,6 +1,6 @@
 /*
  * CHAIXI BAMEEKIAO — Back Office Navigation
- * V4.22 — Daily Operations + Nested System Accordion
+ * V4.23 — Click-to-open Sidebar Accordions
  *
  * Sidebar layout:
  *   1) งานวันนี้ (pinned, direct)
@@ -169,14 +169,9 @@ function createCategoryAccordion(section, root, sectionNow, operationsPage) {
     body.className = 'nav-category-body'
     section.items.forEach(item => body.appendChild(createItemLink(item, root)))
 
-    const storageKey = `chaixi.bo.section.${section.key}.open`
-    let open = isSectionCurrent
-
-    // On งานวันนี้ keep categories compact until the user opens one.
-    // On a system page always reveal the current category so the active page is visible.
-    if (!isSectionCurrent) {
-        try { open = localStorage.getItem(storageKey) === '1' } catch {}
-    }
+    // V1.3: ไม่กด = ไม่แสดงเมนูย่อย
+    // ทุกหัวข้อเริ่มต้นแบบพับ ไม่ auto-open และไม่จำสถานะจากหน้าก่อน
+    let open = false
 
     const applyOpen = () => {
         wrap.classList.toggle('open', open)
@@ -188,7 +183,6 @@ function createCategoryAccordion(section, root, sectionNow, operationsPage) {
 
     toggle.addEventListener('click', () => {
         open = !open
-        try { localStorage.setItem(storageKey, open ? '1' : '0') } catch {}
         applyOpen()
     })
 
@@ -240,16 +234,9 @@ function renderSidebar(root, sectionNow) {
         body.appendChild(createCategoryAccordion(section, root, sectionNow, operationsPage))
     })
 
-    const storageKey = 'chaixi.bo.systemMenuOpen'
-    let open = !operationsPage
-    try {
-        const saved = localStorage.getItem(storageKey)
-        if (saved === '1') open = true
-        if (saved === '0' && operationsPage) open = false
-    } catch {}
-
-    // When user is already inside a system page, keep master menu open.
-    if (!operationsPage) open = true
+    // V1.3: เมนูระบบเริ่มต้นแบบพับเสมอ
+    // ต้องกด "เมนูระบบ" ก่อนจึงจะแสดงหัวข้อด้านล่าง
+    let open = false
 
     const applyOpen = () => {
         group.classList.toggle('open', open)
@@ -261,7 +248,6 @@ function renderSidebar(root, sectionNow) {
 
     toggle.addEventListener('click', () => {
         open = !open
-        try { localStorage.setItem(storageKey, open ? '1' : '0') } catch {}
         applyOpen()
     })
 
@@ -271,7 +257,7 @@ function renderSidebar(root, sectionNow) {
 }
 
 function renderSubnav() {
-    // V4.22: Former horizontal top tabs are now nested under each sidebar category.
+    // V4.23: Former horizontal top tabs are nested under click-to-open sidebar categories.
     // Keep the slot in DOM for backward compatibility, but remove its UI completely.
     const slot = document.querySelector('[data-backoffice-subnav]')
     if (!slot) return
