@@ -1,6 +1,6 @@
 /*
  * CHAIXI BAMEEKIAO — Back Office Navigation
- * V4.23 — Click-to-open Sidebar Accordions
+ * V4.24 — Hidden Attribute Collapse Fix
  *
  * Sidebar layout:
  *   1) งานวันนี้ (pinned, direct)
