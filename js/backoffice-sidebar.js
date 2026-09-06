@@ -1,6 +1,6 @@
 /*
  * CHAIXI BAMEEKIAO — Back Office Navigation
- * V4.24 — Hidden Attribute Collapse Fix
+ * V4.25 — Hard Display Collapse Fix
  *
  * Sidebar layout:
  *   1) งานวันนี้ (pinned, direct)
@@ -124,7 +124,7 @@ function ensureCss(root) {
     if (document.querySelector('link[data-chaixi-sidebar-css]')) return
     const link = document.createElement('link')
     link.rel = 'stylesheet'
-    link.href = `${root}css/backoffice-sidebar.css?v=4.22.0`
+    link.href = `${root}css/backoffice-sidebar.css?v=4.25.0`
     link.dataset.chaixiSidebarCss = 'true'
     document.head.appendChild(link)
 }
@@ -176,6 +176,7 @@ function createCategoryAccordion(section, root, sectionNow, operationsPage) {
     const applyOpen = () => {
         wrap.classList.toggle('open', open)
         body.hidden = !open
+        body.style.display = open ? 'grid' : 'none'
         toggle.setAttribute('aria-expanded', String(open))
         const chev = toggle.querySelector('.nav-category-chevron')
         if (chev) chev.textContent = open ? '⌃' : '⌄'
@@ -241,6 +242,7 @@ function renderSidebar(root, sectionNow) {
     const applyOpen = () => {
         group.classList.toggle('open', open)
         body.hidden = !open
+        body.style.display = open ? 'grid' : 'none'
         toggle.setAttribute('aria-expanded', String(open))
         const chev = toggle.querySelector('.nav-system-chevron')
         if (chev) chev.textContent = open ? '⌃' : '⌄'
