@@ -1,13 +1,17 @@
 /*
  * CHAIXI BAMEEKIAO — Back Office Navigation
- * FINAL: Main Category Sidebar + Explicit Top Subnav Slot
+ * V4.21 — Pinned Daily Operations + Unified System Menu
  *
- * Required HTML:
- *   <nav data-backoffice-nav></nav>
- *   <div data-backoffice-subnav></div>
+ * Sidebar layout:
+ *   1) งานวันนี้ (pinned, direct)
+ *   2) เมนูระบบ (collapsible master group)
+ *      - ภาพรวม
+ *      - Delivery & QR Order
+ *      - Finance
+ *      - Stock & Cost
+ *      - Purchasing
  *
- * Sidebar shows only main categories.
- * Sub-pages render ONLY inside the explicit subnav slot.
+ * Top subnav remains contextual for the selected main category.
  */
 
 const NAV_SECTIONS = [
@@ -16,7 +20,6 @@ const NAV_SECTIONS = [
         title: 'ภาพรวม',
         icon: '🏠',
         items: [
-            { key: 'operations', label: '✅ งานวันนี้', path: 'operations.html' },
             { key: 'dashboard', label: '📊 Dashboard', path: 'dashboard.html' },
             { key: 'financial-summary', label: '🧭 Financial Summary', path: 'finance/financial-summary.html' },
             { key: 'kpi-targets', label: '🎯 KPI & Targets', path: 'finance/kpi-targets.html' },
@@ -106,6 +109,10 @@ function isCurrent(item, root) {
     return normalize(window.location.pathname) === normalize(hrefFor(item, root))
 }
 
+function isOperationsPage(root) {
+    return normalize(window.location.pathname) === normalize(`${root}operations.html`)
+}
+
 function currentSection(root) {
     return NAV_SECTIONS.find(section =>
         section.items.some(item => isCurrent(item, root))
@@ -116,33 +123,97 @@ function ensureCss(root) {
     if (document.querySelector('link[data-chaixi-sidebar-css]')) return
     const link = document.createElement('link')
     link.rel = 'stylesheet'
-    link.href = `${root}css/backoffice-sidebar.css?v=4.20.0`
+    link.href = `${root}css/backoffice-sidebar.css?v=4.21.0`
     link.dataset.chaixiSidebarCss = 'true'
     document.head.appendChild(link)
+}
+
+function createCategoryLink(section, root, sectionNow) {
+    const link = document.createElement('a')
+    link.className = 'nav-category-link'
+    link.href = hrefFor(section.items[0], root)
+    link.dataset.sectionKey = section.key
+
+    if (!isOperationsPage(root) && section.key === sectionNow.key) {
+        link.classList.add('active')
+        link.setAttribute('aria-current', 'true')
+    }
+
+    link.innerHTML = `
+        <span class="nav-category-icon">${section.icon}</span>
+        <span class="nav-category-label">${section.title}</span>
+        <span class="nav-category-arrow" aria-hidden="true">›</span>
+    `
+    return link
 }
 
 function renderSidebar(root, sectionNow) {
     const nav = document.querySelector('[data-backoffice-nav]')
     if (!nav) return
 
-    nav.replaceChildren(...NAV_SECTIONS.map(section => {
-        const link = document.createElement('a')
-        link.className = 'nav-category-link'
-        link.href = hrefFor(section.items[0], root)
-        link.dataset.sectionKey = section.key
+    const operations = document.createElement('a')
+    operations.className = 'nav-daily-link'
+    operations.href = `${root}operations.html`
+    if (isOperationsPage(root)) {
+        operations.classList.add('active')
+        operations.setAttribute('aria-current', 'page')
+    }
+    operations.innerHTML = `
+        <span class="nav-daily-icon">✓</span>
+        <span class="nav-daily-copy">
+            <strong>งานวันนี้</strong>
+            <small>Daily Operations</small>
+        </span>
+        <span class="nav-daily-arrow" aria-hidden="true">›</span>
+    `
 
-        if (section.key === sectionNow.key) {
-            link.classList.add('active')
-            link.setAttribute('aria-current', 'true')
-        }
+    const group = document.createElement('div')
+    group.className = 'nav-system-group'
 
-        link.innerHTML = `
-            <span class="nav-category-icon">${section.icon}</span>
-            <span class="nav-category-label">${section.title}</span>
-            <span class="nav-category-arrow" aria-hidden="true">›</span>
-        `
-        return link
-    }))
+    const toggle = document.createElement('button')
+    toggle.type = 'button'
+    toggle.className = 'nav-system-toggle'
+    toggle.setAttribute('aria-expanded', 'true')
+    toggle.innerHTML = `
+        <span class="nav-system-toggle-icon">☷</span>
+        <span class="nav-system-toggle-copy">
+            <strong>เมนูระบบ</strong>
+            <small>เมนู Back Office ทั้งหมด</small>
+        </span>
+        <span class="nav-system-chevron" aria-hidden="true">⌃</span>
+    `
+
+    const body = document.createElement('div')
+    body.className = 'nav-system-body'
+    NAV_SECTIONS.forEach(section => body.appendChild(createCategoryLink(section, root, sectionNow)))
+
+    const storageKey = 'chaixi.bo.systemMenuOpen'
+    let open = true
+    try {
+        const saved = localStorage.getItem(storageKey)
+        if (saved === '0') open = false
+    } catch {}
+
+    // If user is inside a system page, keep the menu expanded so current category is visible.
+    if (!isOperationsPage(root)) open = true
+
+    const applyOpen = () => {
+        group.classList.toggle('collapsed', !open)
+        body.hidden = !open
+        toggle.setAttribute('aria-expanded', String(open))
+        const chev = toggle.querySelector('.nav-system-chevron')
+        if (chev) chev.textContent = open ? '⌃' : '⌄'
+    }
+
+    toggle.addEventListener('click', () => {
+        open = !open
+        try { localStorage.setItem(storageKey, open ? '1' : '0') } catch {}
+        applyOpen()
+    })
+
+    group.append(toggle, body)
+    nav.replaceChildren(operations, group)
+    applyOpen()
 }
 
 function renderSubnav(root, sectionNow) {
@@ -152,6 +223,14 @@ function renderSubnav(root, sectionNow) {
         return
     }
 
+    // งานวันนี้เป็น workflow หลัก ไม่ต้องแสดงแถบ Overview ซ้ำด้านบน
+    if (isOperationsPage(root)) {
+        slot.replaceChildren()
+        slot.style.display = 'none'
+        return
+    }
+
+    slot.style.display = ''
     slot.className = 'backoffice-subnav'
     slot.setAttribute('aria-label', `${sectionNow.title} navigation`)
 
